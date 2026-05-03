@@ -1,0 +1,11 @@
+# Screenshots and ad-hoc files dropped into the working dir during
+# investigation. We want them in chat context but not in git.
+Screenshot*.png
+*.png
+
+# Local mirror staging — binaries are pushed to OARC; the GitHub repo
+# only carries the manifest pointing at them.
+/downloads/
+
+# Local scratch
+/tmp-*
