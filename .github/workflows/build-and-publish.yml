@@ -1,0 +1,237 @@
+name: build-and-publish
+
+# Drives a full multi-arch publish to GitHub Container Registry from
+# versions.json. The matrix is derived from the manifest, so adding
+# a new XRouter release requires no changes here — just edit
+# versions.json and push.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - versions.json
+      - docker/**
+      - .github/workflows/build-and-publish.yml
+
+env:
+  IMAGE: ghcr.io/packethacking/xrouter
+
+jobs:
+
+  discover:
+    # Parse versions.json once; emit per-cell build matrix and the
+    # latest-pointer values that downstream jobs consume.
+    runs-on: ubuntu-latest
+    outputs:
+      builds: ${{ steps.set.outputs.builds }}
+      version_arches: ${{ steps.set.outputs.version_arches }}
+      latest_amd64: ${{ steps.set.outputs.latest_amd64 }}
+      latest_arm64: ${{ steps.set.outputs.latest_arm64 }}
+      latest_armv7: ${{ steps.set.outputs.latest_armv7 }}
+      support_url: ${{ steps.set.outputs.support_url }}
+      support_sha256: ${{ steps.set.outputs.support_sha256 }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set
+        run: |
+          set -euo pipefail
+          builds=$(jq -c '
+            [
+              .versions | to_entries[] as $v
+              | $v.value | to_entries[]
+              | {
+                  version: $v.key,
+                  arch: .key,
+                  platform: (
+                    if   .key == "amd64" then "linux/amd64"
+                    elif .key == "arm64" then "linux/arm64"
+                    elif .key == "armv7" then "linux/arm/v7"
+                    else null end
+                  ),
+                  url: .value.url,
+                  sha256: .value.sha256
+                }
+            ]
+          ' versions.json)
+          echo "builds=$builds" >> "$GITHUB_OUTPUT"
+
+          version_arches=$(jq -c '
+            [
+              .versions | to_entries[]
+              | { version: .key, arches_str: ([.value | keys[]] | join(" ")) }
+            ]
+          ' versions.json)
+          echo "version_arches=$version_arches" >> "$GITHUB_OUTPUT"
+
+          echo "latest_amd64=$(jq -r '.latest_amd64 // ""' versions.json)" >> "$GITHUB_OUTPUT"
+          echo "latest_arm64=$(jq -r '.latest_arm64 // ""' versions.json)" >> "$GITHUB_OUTPUT"
+          echo "latest_armv7=$(jq -r '.latest_armv7 // ""' versions.json)" >> "$GITHUB_OUTPUT"
+          echo "support_url=$(jq -r '.support.url' versions.json)" >> "$GITHUB_OUTPUT"
+          echo "support_sha256=$(jq -r '.support.sha256' versions.json)" >> "$GITHUB_OUTPUT"
+
+  build:
+    # One cell per (version, arch). Pushes ghcr.io/.../xrouter:<ver>-<arch>.
+    needs: discover
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.builds) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: ${{ matrix.platform }}
+          push: true
+          tags: ${{ env.IMAGE }}:${{ matrix.version }}-${{ matrix.arch }}
+          build-args: |
+            SUPPORT_URL=${{ needs.discover.outputs.support_url }}
+            SUPPORT_SHA256=${{ needs.discover.outputs.support_sha256 }}
+            BIN_URL=${{ matrix.url }}
+            BIN_SHA256=${{ matrix.sha256 }}
+            XROUTER_VERSION=${{ matrix.version }}
+          cache-from: type=gha,scope=${{ matrix.arch }}
+          cache-to: type=gha,scope=${{ matrix.arch }},mode=max
+          provenance: false
+
+  smoke-test:
+    # Pull the just-pushed per-arch image, copy out the example cfg,
+    # run with it, and assert the BOOTLOG line announces the expected
+    # version. Matches the wall-clock startup behaviour we exercised
+    # locally.
+    needs: [discover, build]
+    runs-on: ubuntu-latest
+    permissions:
+      packages: read
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.builds) }}
+    steps:
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: pull, boot, verify, stop
+        env:
+          IMG: ${{ env.IMAGE }}:${{ matrix.version }}-${{ matrix.arch }}
+          PLAT: ${{ matrix.platform }}
+          VER: ${{ matrix.version }}
+        run: |
+          set -euo pipefail
+          mkdir data
+          docker run --rm --platform "$PLAT" --entrypoint /bin/sh "$IMG" \
+            -c 'cat /opt/xrouter/skel/XROUTER.CFG.example' > data/XROUTER.CFG
+          docker run -d --rm --platform "$PLAT" -v "$PWD/data:/data" --name xr "$IMG"
+          ok=
+          for i in $(seq 1 45); do
+              if docker logs xr 2>&1 | grep -q "version ${VER} started"; then
+                  ok=1; break
+              fi
+              sleep 1
+          done
+          docker logs xr 2>&1 || true
+          docker stop -t 5 xr 2>/dev/null || true
+          [ -n "$ok" ] || { echo "FAIL: boot line not seen for $IMG"; exit 1; }
+
+  manifest-per-version:
+    # Fuse the per-arch tags for each version into a multi-arch
+    # manifest list at :<ver>. Versions that ship only some arches
+    # produce a list with just those arches; pulls for missing arches
+    # will surface "no matching manifest" — appropriate behaviour.
+    needs: [discover, smoke-test]
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.version_arches) }}
+    steps:
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: assemble multi-arch manifest list
+        env:
+          IMG: ${{ env.IMAGE }}
+          VER: ${{ matrix.version }}
+          ARCHES: ${{ matrix.arches_str }}
+        run: |
+          set -euo pipefail
+          sources=""
+          for a in $ARCHES; do
+              sources="$sources $IMG:$VER-$a"
+          done
+          docker buildx imagetools create -t "$IMG:$VER" $sources
+
+  latest-pointers:
+    # Assemble per-arch :latest-<arch> aliases pointing at each arch's
+    # editorial latest, then a combined :latest manifest list whose
+    # entries resolve to those aliases. Independent per-arch pointers
+    # mean a stalled arch (e.g. arm64 missing recent releases) doesn't
+    # hold back the others.
+    needs: [discover, manifest-per-version]
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: per-arch latest pointers
+        env:
+          IMG: ${{ env.IMAGE }}
+          LA: ${{ needs.discover.outputs.latest_amd64 }}
+          LR: ${{ needs.discover.outputs.latest_arm64 }}
+          LV: ${{ needs.discover.outputs.latest_armv7 }}
+        run: |
+          set -euo pipefail
+          if [ -n "$LA" ]; then
+              docker buildx imagetools create -t "$IMG:latest-amd64" "$IMG:$LA-amd64"
+          fi
+          if [ -n "$LR" ]; then
+              docker buildx imagetools create -t "$IMG:latest-arm64" "$IMG:$LR-arm64"
+          fi
+          if [ -n "$LV" ]; then
+              docker buildx imagetools create -t "$IMG:latest-armv7" "$IMG:$LV-armv7"
+          fi
+      - name: combined :latest manifest list
+        env:
+          IMG: ${{ env.IMAGE }}
+          LA: ${{ needs.discover.outputs.latest_amd64 }}
+          LR: ${{ needs.discover.outputs.latest_arm64 }}
+          LV: ${{ needs.discover.outputs.latest_armv7 }}
+        run: |
+          set -euo pipefail
+          sources=""
+          [ -n "$LA" ] && sources="$sources $IMG:$LA-amd64"
+          [ -n "$LR" ] && sources="$sources $IMG:$LR-arm64"
+          [ -n "$LV" ] && sources="$sources $IMG:$LV-armv7"
+          if [ -z "$sources" ]; then
+              echo "no latest pointers configured; skipping :latest"
+              exit 0
+          fi
+          docker buildx imagetools create -t "$IMG:latest" $sources
