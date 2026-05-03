@@ -252,3 +252,24 @@ jobs:
           [ "$got" = "$expected" ] || {
               echo "FAIL: expected $expected got $got"; exit 1; }
           echo "ok: $IMG:latest is a manifest list with $got"
+
+  readme-example:
+    # Runs the testcontainers-Python snippet from README.md verbatim
+    # against the just-published :latest. Catches drift between what
+    # the README claims and what actually works.
+    needs: latest-pointers
+    runs-on: ubuntu-latest
+    permissions:
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - run: pip install -r tests/requirements.txt
+      - run: pytest -v tests/test_xrouter_boots.py
