@@ -82,6 +82,43 @@ docker run --rm --entrypoint /bin/sh ghcr.io/packethacking/xrouter:latest \
 Base layer: `debian:bookworm-slim`. The XRouter binary itself is statically
 linked, so the runtime image carries no shared-library surface to update.
 
+## Support files
+
+XRouter ships a *support package* (currently `xrouter-504k-support-files.zip`)
+separate from the binary, containing the HELP / MAN / INFO docs that the
+binary serves to connected users via packet console commands like `?`, `MAN`,
+and `INFO`, plus skeleton `.SYS` / `.ACL` / `.CFG` files that XRouter reads
+optionally for things like access control, IP routes, and user passwords.
+Upstream, sysops download this zip alongside the binary and unzip it into
+their working directory.
+
+The image bakes this tree at `/opt/xrouter/skel/` and the entrypoint stages
+it into `/data` on every start:
+
+- **Docs** (`HELP/`, `MAN/`, `INFO/`, `MISC/`) are *refreshed* every run via
+  `cp -rf` — they should track the binary, not be edited.
+- **Sample config files** (`ACCESS.SYS`, `BOOTCMDS.SYS`, `CRONTAB.SYS`,
+  `HTTP.ACL`, `HTTP.SYS`, `HTTPBAN.SYS`, `IGATE.CFG`, `IPROUTE.SYS`,
+  `LANGS.SYS`, `PASSWORD.SYS`, `TELGUEST.ACL`, `TELPROXY.ACL`,
+  `USERPASS.SYS`, language packs, plus the `XROUTER.CFG.example` we ship)
+  are seeded `cp -n` style — only copied if `/data/<name>` doesn't already
+  exist. Sysop edits survive container restarts.
+- `XROUTER.CFG` itself is *never* auto-created. The container refuses to
+  start if `/data/XROUTER.CFG` is missing.
+- Empty subdirs that XRouter expects (`LOG/`, `CHAT/`, `PMS/`, `FINGER/`)
+  get `mkdir -p`'d.
+
+**Do you need to know about the support tree?** Mostly no — for a typical
+testcontainers / CI / single-sysop use case, mount `/data`, drop your
+`XROUTER.CFG` in, and ignore everything else. The relevant exception is if
+you want to customise things like the `ACCESS.SYS` rules or the language pack:
+edit them inside `/data` (you'll find the seeded copies there after first
+boot) and they'll persist.
+
+The support package's version is independent from the binary's version (the
+binary has changed several times since the support tree was last refreshed
+upstream); the manifest tracks them separately.
+
 ## Image tags
 
 | Tag                              | Refers to                                             |
@@ -145,38 +182,34 @@ docker run --rm -it \
 
 ## testcontainers (Python) example
 
-Spins the container up against an in-memory loopback config, waits for the
-boot announcement in the log, and asserts the HTTP API port is reachable.
+Spins the container up using the dummy XROUTER.CFG that ships in the image,
+waits for the boot announcement in the log, and asserts the HTTP API port is
+reachable.
 
 ```python
 # pip install testcontainers
-import pathlib, socket, textwrap
+import pathlib, socket, subprocess
 from testcontainers.core.container import DockerContainer
 from testcontainers.core.waiting_utils import wait_for_logs
 
-XROUTER_CFG = textwrap.dedent("""\
-    NODECALL=TEST-1
-    NODEALIAS=TEST
-    CONSOLECALL=TEST
-    INTERFACE=1
-        TYPE=LOOPBACK
-        PROTOCOL=KISS
-        MTU=256
-    ENDINTERFACE
-    PORT=1
-        ID="Loopback port"
-        INTERFACENUM=1
-    ENDPORT
-""")
+IMAGE = "ghcr.io/packethacking/xrouter:latest"
 
 
 def test_xrouter_boots(tmp_path: pathlib.Path) -> None:
     data = tmp_path / "xr"
     data.mkdir()
-    (data / "XROUTER.CFG").write_text(XROUTER_CFG)
+    # Bootstrap config from the in-image example so the test
+    # doesn't need to track XRouter's evolving validation rules
+    # (callsign format, mandatory directives, etc.). The example
+    # is loopback-only — fine for a smoke check.
+    cfg = subprocess.check_output([
+        "docker", "run", "--rm", "--entrypoint", "/bin/sh", IMAGE,
+        "-c", "cat /opt/xrouter/skel/XROUTER.CFG.example",
+    ])
+    (data / "XROUTER.CFG").write_bytes(cfg)
 
     with (
-        DockerContainer("ghcr.io/packethacking/xrouter:latest")
+        DockerContainer(IMAGE)
         .with_volume_mapping(str(data), "/data", "rw")
         .with_exposed_ports(8086)  # XRouter's /api/v1/* listener
     ) as xr:
