@@ -247,7 +247,7 @@ jobs:
           set -euo pipefail
           docker buildx imagetools inspect "$IMG:latest"
           got=$(docker buildx imagetools inspect "$IMG:latest" \
-              | awk '/^Platform:/ { print $2 }' | sort -u | paste -sd,)
+              | awk '/Platform:/ { print $2 }' | sort -u | paste -sd,)
           expected="linux/amd64,linux/arm/v7,linux/arm64"
           [ "$got" = "$expected" ] || {
               echo "FAIL: expected $expected got $got"; exit 1; }
