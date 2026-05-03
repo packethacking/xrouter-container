@@ -137,10 +137,11 @@ docker run --rm -it \
   `*.SYS` / `*.ACL` files with `cp -n` semantics — your edits are not
   clobbered. The XROUTER.CFG dummy is renamed to `XROUTER.CFG.example` and
   not auto-copied; bring your own.
-- **Outbound traffic.** With a stock loopback config the container makes zero
-  outbound IP connections. Hosts XRouter is wired to talk to (`rotate.aprs2.net`,
-  `node-api.packet.oarc.uk`, `*.ampr.org`, the DynDNS endpoint) only fire
-  when the matching directive is present in `XROUTER.CFG`.
+- **Outbound traffic.** Hosts XRouter is wired to talk to
+  (`rotate.aprs2.net`, `node-api.packet.oarc.uk`, `*.ampr.org`, a DynDNS
+  endpoint) are only contacted when the matching directive is configured in
+  `XROUTER.CFG`. With a loopback-only config it's quiet; if you want hard
+  guarantees, attach to a `docker network create --internal` network.
 
 ## testcontainers (Python) example
 

@@ -1,2 +1,0 @@
-testcontainers>=4.0
-pytest>=8.0
