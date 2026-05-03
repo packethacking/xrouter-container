@@ -29,6 +29,16 @@ This repo turns all of that into:
 
 ## Quick start
 
+The package is currently private under the `packethacking` org, so the first
+step on a new machine is to authenticate to GHCR. A GitHub personal access
+token with `read:packages` works:
+
+```sh
+echo "$GHCR_TOKEN" | docker login ghcr.io -u <your-gh-username> --password-stdin
+```
+
+Then:
+
 ```sh
 mkdir myxrouter
 cp /path/to/your/XROUTER.CFG myxrouter/
