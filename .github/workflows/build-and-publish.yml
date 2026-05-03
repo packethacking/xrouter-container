@@ -235,3 +235,20 @@ jobs:
               exit 0
           fi
           docker buildx imagetools create -t "$IMG:latest" $sources
+      - name: verify multi-arch resolution
+        # Inspecting :latest forces the registry to resolve the
+        # manifest list. Asserting it reports linux/amd64 + linux/arm64
+        # + linux/arm/v7 confirms the cross-arch publish pipeline is
+        # genuinely multi-arch on the wire and not just three
+        # independent tags. Visible in the workflow log.
+        env:
+          IMG: ${{ env.IMAGE }}
+        run: |
+          set -euo pipefail
+          docker buildx imagetools inspect "$IMG:latest"
+          got=$(docker buildx imagetools inspect "$IMG:latest" \
+              | awk '/^Platform:/ { print $2 }' | sort -u | paste -sd,)
+          expected="linux/amd64,linux/arm/v7,linux/arm64"
+          [ "$got" = "$expected" ] || {
+              echo "FAIL: expected $expected got $got"; exit 1; }
+          echo "ok: $IMG:latest is a manifest list with $got"
