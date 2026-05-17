@@ -9,3 +9,6 @@ Screenshot*.png
 
 # Local scratch
 /tmp-*
+
+# Fuzzer artefacts — produced locally, not checked in.
+/fuzz/crashes/
