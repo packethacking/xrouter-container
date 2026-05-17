@@ -30,3 +30,9 @@ Screenshot*.png
 /fuzz/PMS/
 /fuzz/SMS/
 /fuzz/SPOOL/
+
+fuzz/__pycache__/
+fuzz/bugs/*/core
+fuzz/bugs/*/trigger.bin
+fuzz/bugs/*/first.json
+fuzz/bugs/*/triage.json
