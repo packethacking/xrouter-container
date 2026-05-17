@@ -12,3 +12,21 @@ Screenshot*.png
 
 # Fuzzer artefacts — produced locally, not checked in.
 /fuzz/crashes/
+
+# If anyone bind-mounts fuzz/ as /data, xrouter dumps its runtime
+# state and docs in here. Ignore everything except the files we ship.
+/fuzz/*.SYS
+/fuzz/*.ACL
+/fuzz/*.CFG.example
+/fuzz/IGATE.CFG
+/fuzz/CHAT/
+/fuzz/FINGER/
+/fuzz/FTP/
+/fuzz/HELP/
+/fuzz/INFO/
+/fuzz/LOG/
+/fuzz/MAN/
+/fuzz/MISC/
+/fuzz/PMS/
+/fuzz/SMS/
+/fuzz/SPOOL/
