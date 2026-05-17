@@ -98,9 +98,13 @@ target couldn't be probed cleanly under qemu.
 ### Reproduce
 
 ```sh
-# Boot a clean target
+# Boot a clean target (use a fresh temp dir for /data — xrouter writes
+# its docs/logs/state into the mounted directory on first boot)
+WORK=$(mktemp -d)
+cp fuzz/XROUTER.CFG "$WORK/"
+
 docker run -d --name xr-arp-poc \
-    -v "$(pwd)/fuzz:/data" \
+    -v "$WORK:/data" \
     -p 18080:80 -p 10093:10093/udp \
     ghcr.io/packethacking/xrouter:505c-amd64
 
@@ -124,6 +128,8 @@ sleep 1
 curl -s -o /dev/null -w 'after : HTTP=%{http_code}\n' http://127.0.0.1:18080/
 docker ps -a --filter name=xr-arp-poc --format '{{.Status}}'
 docker logs xr-arp-poc | tail -3
+docker rm -f xr-arp-poc
+rm -rf "$WORK"
 ```
 
 Expected output:
@@ -160,8 +166,11 @@ is seeded, so they are still deterministically reproducible from the
 seed:
 
 ```sh
+WORK=$(mktemp -d)
+cp fuzz/XROUTER.CFG "$WORK/"
+
 docker run -d --name xr-state-poc \
-    -v "$(pwd)/fuzz:/data" \
+    -v "$WORK:/data" \
     -p 18080:80 -p 10093:10093/udp \
     ghcr.io/packethacking/xrouter:505c-amd64
 
@@ -173,6 +182,9 @@ python3 fuzz/axudp-fuzz.py \
     --seed 4082254966 \
     --max-frames 1500 \
     --probe-every 200
+
+docker rm -f xr-state-poc
+rm -rf "$WORK"
 ```
 
 The first crash arrives at frame ~1200 in that run. Because the PRNG
