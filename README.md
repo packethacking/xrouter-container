@@ -8,24 +8,22 @@ on `linux/amd64`, `linux/arm64`, and `linux/arm/v7`.
 
 ## Why
 
-XRouter's upstream distribution is a wiki page, a groups.io files area behind a
-login, ad-hoc per-platform zips named in two different conventions, and a
-support-files bundle that is versioned independently of the binary. Standing it
-up reproducibly — for an integration test, a CI job, a fresh sysop install, or
-an x86 VM rehearsing a Pi deployment — is fiddly and error-prone.
+XRouter is distributed upstream via the [wiki](https://wiki.oarc.uk/packet:xrouter)
+and the [groups.io files area](https://groups.io/g/xrouter/files) — the
+canonical sources, and the right place to go for the binary, the support
+package, and sysop discussion. This repo is a downstream convenience for
+people who want a containerised build: a single `docker pull` for an
+integration test, a CI job, or an x86 VM rehearsing a Pi deployment.
 
-This repo turns all of that into:
+What the image adds on top of the upstream zips:
 
-- A canonical mirror of the binaries on OARC compute object storage, named
-  predictably (`xrouter-<version>-<arch>`).
-- A single Docker image per `(version, arch)` combination, with the support
-  tree, sample configs, and HELP / MAN docs already laid out as XRouter
-  expects.
-- A multi-arch image so `docker pull ghcr.io/packethacking/xrouter:latest` does
-  the right thing on any of the three platforms above.
-- A headless wrapper that turns XRouter's curses status TUI into a structured
-  log stream on `docker logs`, so testcontainers' `WaitForLogMessage` and
-  similar strategies work against real boot lines.
+- A pinned `(version, arch)` per tag, with the support tree, sample configs,
+  and HELP / MAN docs already in the right place.
+- A multi-arch `:latest` manifest list so `docker pull` resolves correctly
+  on `linux/amd64`, `linux/arm64`, and `linux/arm/v7`.
+- An optional headless mode that forwards XRouter's boot log to stdout so
+  `docker logs` / testcontainers' `WaitForLogMessage` work; the curses TUI
+  is still available via `XROUTER_TUI=1`.
 
 ## Quick start
 
@@ -124,9 +122,8 @@ XRouter's release scheme is a numeric prefix plus a letter suffix (`504v`,
 `504z`, `505a`, `505b`, …). Letters increment until the prefix rolls. Because
 the registry doesn't know that `504z < 505a`, the per-arch `latest_<arch>`
 pointers in [`versions.json`](versions.json) are explicit, not derived from
-sorting. The author publishes builds for arches inconsistently — some releases
-ship only amd64 — so each arch tracks its own latest and a stalled arch
-doesn't hold back the others.
+sorting. Each arch tracks its own latest, so a release that only ships some
+architectures doesn't hold the others back.
 
 ## Output modes
 
