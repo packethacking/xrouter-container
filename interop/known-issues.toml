@@ -48,16 +48,6 @@ tests = [
   "test_routes_recover_when_link_restored",
   "test_xrouter_resends_own_rif_after_link_restored",
   "test_bpq3_relearns_bpq_side_after_link_restored",
-]
-
-[[issue]]
-id = "late-initial-rif-505a"
-title = "XRouter sends no RIF for minutes after the link comes up (further knock-on failures in 505a)"
-finding = 1
-from = "505a"
-until = "505a"
-strict = false
-tests = [
   "test_bpq3_learns_whole_network_through_xrouter",
   "test_l4_connect_bpq3_to_bpq2_through_xrouter",
   "test_xrouter_forwards_negative_info_to_bpq3",
