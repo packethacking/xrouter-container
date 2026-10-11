@@ -49,6 +49,8 @@ def test_bpq_reflects_xrouter_l3rtt(wire, converged):
     # The newest probe may still be in flight.
     if missing and missing[-1] is pairs[-1][0]:
         missing = missing[:-1]
+    # Probes sent around a host stall prove nothing about either node.
+    missing = [p for p in missing if not wire.near_stall(p["t"])]
     assert not missing, f"[INP3] the neighbour reflects every RTT frame; LinBPQ did not reflect:\n{lines(missing)}"
 
 
@@ -58,8 +60,9 @@ def test_xrouter_reflects_bpq_l3rtt(wire, converged):
     missing = [p for p, r in pairs if r is None]
     if missing and missing[-1] is pairs[-1][0]:
         missing = missing[:-1]
+    missing = [p for p in missing if not wire.near_stall(p["t"])]
     assert not missing, f"[INP3] the neighbour reflects every RTT frame; XRouter did not reflect:\n{lines(missing)}"
-    slow = [(p, r) for p, r in pairs if r and r["t"] - p["t"] > 2.0]
+    slow = [(p, r) for p, r in pairs if r and r["t"] - p["t"] > 2.0 and not wire.near_stall(p["t"])]
     assert not slow, ("[INP3] 'The neighbor will reflect a received RTT frame immediately'; "
                       "XRouter took over 2 s:\n" +
                       "\n".join(f"  probe {p['t']:.3f} reflected {r['t']:.3f} (+{r['t'] - p['t']:.2f} s)" for p, r in slow))

@@ -11,6 +11,12 @@ Every datagram is also decoded (AX.25 header, and NET/ROM content for
 PID 0xCF) and written as one JSON object per line to the log file. That
 log is the wire evidence for the tests and for bug reports.
 
+A link can also be a KISS over TCP tap ("kind": "kiss_tcp"), for nodes
+whose radio port is a TCP KISS server (the TNC-2 emulator). Node A dials
+the relay's `listen_port`, the relay dials node B's `host:port`, and each
+KISS data frame is logged decoded and passed on unchanged. KISS frames
+carry no FCS, so those records have `"fcs": "none_kiss"`.
+
 A small HTTP control server lets tests drop or delay frames on a link:
 
     GET  /links                     current link state
@@ -173,7 +179,9 @@ def decode_netrom(info: bytes, dest: str, ctl: dict) -> dict:
     if not info:
         return {"kind": "EMPTY"}
     if info[0] == 0xFF:
-        if ctl.get("type") == "UI" and dest == "NODES":
+        # NODES go in UI frames, normally to NODES; RIFs only in I frames.
+        # TNN also sends a NODES-shaped UI to a neighbour's own callsign.
+        if ctl.get("type") == "UI":
             return decode_nodes(info)
         return decode_rif(info)
     if info[0] == 0xFE and ctl.get("type") == "UI" and dest == "NODES":
@@ -208,9 +216,12 @@ def decode_netrom(info: bytes, dest: str, ctl: dict) -> dict:
     return out
 
 
-def decode_frame(data: bytes) -> dict:
+def decode_frame(data: bytes, has_fcs: bool = True) -> dict:
     out: dict = {"len": len(data)}
-    if len(data) >= 2 and fcs16(data[:-2]) == (data[-2] | (data[-1] << 8)):
+    if not has_fcs:
+        out["fcs"] = "none_kiss"
+        frame = data
+    elif len(data) >= 2 and fcs16(data[:-2]) == (data[-2] | (data[-1] << 8)):
         out["fcs"] = "ok"
         frame = data[:-2]
     else:
@@ -301,6 +312,35 @@ class Link:
     b_transport: asyncio.DatagramTransport | None = None
 
 
+@dataclass
+class KissLink:
+    """A TCP KISS tap: `a` dials us on listen_port, we dial `b`."""
+    name: str
+    a: dict
+    b: dict
+    listen_port: int
+    drop: bool = False
+    delay_ms: int = 0
+    counts: dict = field(default_factory=lambda: {"forwarded": 0, "dropped": 0})
+
+
+FEND, FESC, TFEND, TFESC = 0xC0, 0xDB, 0xDC, 0xDD
+
+
+def kiss_unescape(data: bytes) -> bytes:
+    out = bytearray()
+    i = 0
+    while i < len(data):
+        b = data[i]
+        if b == FESC and i + 1 < len(data):
+            out.append({TFEND: FEND, TFESC: FESC}.get(data[i + 1], data[i + 1]))
+            i += 2
+            continue
+        out.append(b)
+        i += 1
+    return bytes(out)
+
+
 class Logger:
     def __init__(self, path: str, text_path: str | None):
         self.f = open(path, "a", buffering=1)
@@ -324,13 +364,16 @@ class Side(asyncio.DatagramProtocol):
 
 
 class Relay:
-    def __init__(self, links: list[Link], log: Logger):
+    def __init__(self, links: list, log: Logger):
         self.links = {l.name: l for l in links}
         self.log = log
 
     async def start(self) -> None:
         loop = asyncio.get_running_loop()
         for l in self.links.values():
+            if isinstance(l, KissLink):
+                await asyncio.start_server(lambda r, w, l=l: self.kiss_client(l, r, w), "0.0.0.0", l.listen_port)
+                continue
             l.a_transport, _ = await loop.create_datagram_endpoint(
                 lambda l=l: Side(self, l, "a"), local_addr=("0.0.0.0", l.a_port))
             l.b_transport, _ = await loop.create_datagram_endpoint(
@@ -370,6 +413,83 @@ class Relay:
             asyncio.get_running_loop().call_later(link.delay_ms / 1000, out.sendto, data, target)
         else:
             out.sendto(data, target)
+
+    async def kiss_client(self, link: KissLink, reader: asyncio.StreamReader,
+                          writer: asyncio.StreamWriter) -> None:
+        """One TCP KISS session: pass frames both ways, logging each data frame."""
+        peer = writer.get_extra_info("peername")
+        try:
+            up_r, up_w = await asyncio.wait_for(
+                asyncio.open_connection(link.b["host"], link.b["port"]), 5)
+        except (OSError, asyncio.TimeoutError) as e:
+            self.log.write({"t": round(time.time(), 3), "event": "kiss",
+                            "text": f"{link.name}: cannot reach {link.b['name']} ({e!r}), closing {link.a['name']}"})
+            writer.close()
+            return
+        self.log.write({"t": round(time.time(), 3), "event": "kiss",
+                        "text": f"{link.name}: {link.a['name']} {peer[0]}:{peer[1]} connected, tapped through to "
+                                f"{link.b['name']} {link.b['host']}:{link.b['port']}"})
+
+        async def pump(src_r, dst_w, src: dict, dst: dict, addr: str) -> None:
+            buf = b""
+            while True:
+                chunk = await src_r.read(4096)
+                if not chunk:
+                    break
+                buf += chunk
+                while True:
+                    start = buf.find(bytes([FEND]))
+                    if start < 0:
+                        buf = b""
+                        break
+                    end = buf.find(bytes([FEND]), start + 1)
+                    if end < 0:
+                        buf = buf[start:]
+                        break
+                    body = buf[start + 1:end]
+                    buf = buf[end:]
+                    if not body:
+                        continue
+                    self.on_kiss(link, src, dst, addr, body, dst_w)
+
+        tasks = [asyncio.create_task(pump(reader, up_w, link.a, link.b, f"{peer[0]}:{peer[1]}")),
+                 asyncio.create_task(pump(up_r, writer, link.b, link.a, f"{link.b['host']}:{link.b['port']}"))]
+        await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+        for t in tasks:
+            t.cancel()
+        for w in (writer, up_w):
+            w.close()
+        self.log.write({"t": round(time.time(), 3), "event": "kiss",
+                        "text": f"{link.name}: session from {peer[0]}:{peer[1]} closed"})
+
+    def on_kiss(self, link: KissLink, src: dict, dst: dict, addr: str, body: bytes,
+                out: asyncio.StreamWriter) -> None:
+        wire = bytes([FEND]) + body + bytes([FEND])
+        cmd = body[0]
+        if cmd & 0x0F != 0:
+            # KISS parameter frames (TXDELAY and so on): pass on, do not log.
+            out.write(wire)
+            return
+        data = kiss_unescape(body[1:])
+        rec = {"t": round(time.time(), 3), "link": link.name, "from": src["name"], "to": dst["name"],
+               "from_addr": addr, "transport": "kiss", "kiss_port": cmd >> 4}
+        try:
+            rec["frame"] = decode_frame(data, has_fcs=False)
+        except Exception as e:  # never let a decode bug stop forwarding
+            rec["frame"] = {"error": f"decoder crashed: {e!r}", "hex": data.hex()}
+        rec["raw"] = data.hex()
+        if link.drop:
+            rec["action"] = "dropped"
+            link.counts["dropped"] += 1
+            self.log.write(rec)
+            return
+        rec["action"] = "forwarded"
+        link.counts["forwarded"] += 1
+        self.log.write(rec)
+        if link.delay_ms > 0:
+            asyncio.get_running_loop().call_later(link.delay_ms / 1000, out.write, wire)
+        else:
+            out.write(wire)
 
     def state(self) -> dict:
         return {n: {"drop": l.drop, "delay_ms": l.delay_ms, **l.counts}
@@ -423,8 +543,12 @@ async def main() -> None:
     args = ap.parse_args()
     with open(args.config) as f:
         cfg = json.load(f)
-    links = [Link(name=l["name"], a=l["a"], b=l["b"], a_port=l["a_port"], b_port=l["b_port"])
-             for l in cfg["links"]]
+    links = []
+    for l in cfg["links"]:
+        if l.get("kind") == "kiss_tcp":
+            links.append(KissLink(name=l["name"], a=l["a"], b=l["b"], listen_port=l["listen_port"]))
+        else:
+            links.append(Link(name=l["name"], a=l["a"], b=l["b"], a_port=l["a_port"], b_port=l["b_port"]))
     relay = Relay(links, Logger(args.log, args.text_log))
     await relay.start()
     server = await asyncio.start_server(relay.handle_http, "0.0.0.0", args.control_port)
@@ -436,10 +560,26 @@ async def main() -> None:
             await asyncio.sleep(30)
             relay.log.write({"t": round(time.time(), 3), "event": "stats", "text": json.dumps(relay.state())})
 
+    async def stall_watch() -> None:
+        # If the whole host stalls, every node's timers fire at once when it
+        # resumes and links reset for reasons that have nothing to do with the
+        # software under test. Record such stalls so tests can tell.
+        loop = asyncio.get_running_loop()
+        last = loop.time()
+        while True:
+            await asyncio.sleep(0.5)
+            now = loop.time()
+            if now - last > 2.5:
+                relay.log.write({"t": round(time.time(), 3), "event": "stall", "stall_s": round(now - last, 2),
+                                 "text": f"relay slept {now - last:.1f} s instead of 0.5 s (host stalled)"})
+            last = now
+
     hb = asyncio.create_task(heartbeat())
+    sw = asyncio.create_task(stall_watch())
     async with server:
         await server.serve_forever()
     hb.cancel()
+    sw.cancel()
 
 
 if __name__ == "__main__":

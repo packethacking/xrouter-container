@@ -44,6 +44,65 @@
       },
       "a_port": 20005,
       "b_port": 20006
+    },
+    {
+      "name": "xr-xnet",
+      "a": {
+        "name": "xrouter",
+        "host": "172.28.77.11",
+        "port": 10095
+      },
+      "b": {
+        "name": "xnet",
+        "host": "172.28.77.15",
+        "port": 10093
+      },
+      "a_port": 20007,
+      "b_port": 20008
+    },
+    {
+      "name": "xr-tnn",
+      "a": {
+        "name": "xrouter",
+        "host": "172.28.77.11",
+        "port": 10096
+      },
+      "b": {
+        "name": "tnn",
+        "host": "172.28.77.16",
+        "port": 10093
+      },
+      "a_port": 20009,
+      "b_port": 20010
+    },
+    {
+      "name": "xr-thenet",
+      "kind": "kiss_tcp",
+      "a": {
+        "name": "xrouter",
+        "host": "172.28.77.11"
+      },
+      "b": {
+        "name": "thenet",
+        "host": "172.28.77.17",
+        "port": 8001
+      },
+      "listen_port": 20101
+    },
+    {
+      "name": "xr-xrpeer",
+      "a": {
+        "name": "xrouter",
+        "host": "172.28.77.11",
+        "port": 10097
+      },
+      "b": {
+        "name": "xrpeer",
+        "host": "172.28.77.18",
+        "port": 10093
+      },
+      "a_port": 20011,
+      "b_port": 20012
     }
   ]
 }

@@ -7,13 +7,16 @@ neighbor are dropped."
 
 These tests run in file order and share the link state: the third-party link
 (LinBPQ <-> LinBPQ2) goes down and comes back first, then the XRouter link.
+XRouter has to pass each change on to its other INP3 neighbours too (LinBPQ3,
+and XNet, TNN and the second XRouter when they are running).
 """
 
 import time
 
 import pytest
 
-from conftest import BPQ2_ALIAS, BPQ2_CALL, BPQ_APP_CALL, BPQ_CALL, LINK, LINK2, LINK3, XR_CALL, relay_ctl
+from conftest import (BPQ2_ALIAS, BPQ2_CALL, BPQ_APP_CALL, BPQ_CALL, LINK, LINK2, LINK3, LINK_TNN, LINK_XNET,
+                      LINK_XRPEER, XR_CALL, needs_peer, relay_ctl)
 from parse import bpq_node_routes, bpq_routes, xr_routes
 from wire import lines, wait_for
 
@@ -113,6 +116,38 @@ def test_xrouter_forwards_negative_info_to_bpq3(wire):
                                     f"(limit {FORWARD_BOUND} s):\n{lines(got[:1])}")
 
 
+def _forwards_negative_to(wire, link: str, who: str):
+    if "t_neg2" not in state:
+        pytest.skip("no negative RIF reached XRouter (see the earlier test)")
+    t_in = state["t_neg2"]
+
+    def forwarded():
+        return [r for rip, r in wire.rips(link, "xrouter", since=t_in - 0.5)
+                if rip["call"] == BPQ2_CALL and rip["tt"] >= HORIZON_TT]
+
+    got = wait_for(forwarded, max(3, t_in + 30 - time.time()), 1)
+    assert got, (f"XRouter received negative information for {BPQ2_CALL} at {t_in:.3f} but did not pass it on "
+                 f"to {who} within 30 s.\nXRouter RIFs to {who} since:\n{lines(wire.rifs(link, 'xrouter', since=t_in - 0.5))}")
+    delay = got[0]["t"] - t_in
+    assert delay <= FORWARD_BOUND, (f"XRouter took {delay:.1f} s to forward negative information for {BPQ2_CALL} "
+                                    f"to {who} (limit {FORWARD_BOUND} s):\n{lines(got[:1])}")
+
+
+@needs_peer("xnet")
+def test_xrouter_forwards_negative_info_to_xnet(wire):
+    _forwards_negative_to(wire, LINK_XNET, "XNet")
+
+
+@needs_peer("tnn")
+def test_xrouter_forwards_negative_info_to_tnn(wire):
+    _forwards_negative_to(wire, LINK_TNN, "TNN")
+
+
+@needs_peer("xrpeer")
+def test_xrouter_forwards_negative_info_to_xrpeer(wire):
+    _forwards_negative_to(wire, LINK_XRPEER, "the peer XRouter")
+
+
 def test_third_party_returns_when_link_restored(xr, wire):
     t0 = _restore(LINK2)
 
@@ -209,6 +244,37 @@ def test_xrouter_tells_bpq3_that_bpq_side_is_gone(wire):
                  f"XRouter RIFs to LinBPQ3 since the drop:\n{lines(wire.rifs(LINK3, 'xrouter', since=t0))}")
 
 
+def _tells_bpq_side_gone(wire, link: str, who: str):
+    if "t_drop" not in state:
+        pytest.skip("link was not dropped")
+    t0 = state["t_drop"]
+    want = {BPQ_CALL, BPQ_APP_CALL, BPQ2_CALL}
+
+    def withdrawn():
+        seen = {rip["call"] for rip, _ in wire.rips(link, "xrouter", since=t0) if rip["tt"] >= HORIZON_TT}
+        return want <= seen
+
+    left = max(5, NEGATIVE_BOUND - (time.time() - t0))
+    got = wait_for(withdrawn, left, 1)
+    assert got, (f"XRouter did not tell {who} that {sorted(want)} are unreachable within {NEGATIVE_BOUND} s of the "
+                 f"LinBPQ link going silent.\nXRouter RIFs to {who} since the drop:\n{lines(wire.rifs(link, 'xrouter', since=t0))}")
+
+
+@needs_peer("xnet")
+def test_xrouter_tells_xnet_that_bpq_side_is_gone(wire):
+    _tells_bpq_side_gone(wire, LINK_XNET, "XNet")
+
+
+@needs_peer("tnn")
+def test_xrouter_tells_tnn_that_bpq_side_is_gone(wire):
+    _tells_bpq_side_gone(wire, LINK_TNN, "TNN")
+
+
+@needs_peer("xrpeer")
+def test_xrouter_tells_xrpeer_that_bpq_side_is_gone(wire):
+    _tells_bpq_side_gone(wire, LINK_XRPEER, "the peer XRouter")
+
+
 def test_routes_recover_when_link_restored(xr, bpq, wire):
     # Keep the outage short: both nodes back off their reconnect attempts.
     state["t_restore"] = t0 = _restore(LINK)
@@ -251,3 +317,33 @@ def test_bpq3_relearns_bpq_side_after_link_restored(wire):
     got = wait_for(back, 60, 2)
     assert got, (f"XRouter did not re-advertise {sorted(want)} to LinBPQ3 after the LinBPQ link came back.\n"
                  f"XRouter RIFs to LinBPQ3 since the restore:\n{lines(wire.rifs(LINK3, 'xrouter', since=t0))}")
+
+
+def _relearns_bpq_side(wire, link: str, who: str):
+    if "t_restore" not in state:
+        pytest.skip("link was not restored")
+    t0 = state["t_restore"]
+    want = {BPQ_CALL, BPQ2_CALL}
+
+    def back():
+        seen = {rip["call"] for rip, _ in wire.rips(link, "xrouter", since=t0) if rip["tt"] < HORIZON_TT}
+        return want <= seen
+
+    got = wait_for(back, max(3, t0 + 90 - time.time()), 2)
+    assert got, (f"XRouter did not re-advertise {sorted(want)} to {who} within 90 s of the LinBPQ link coming back.\n"
+                 f"XRouter RIFs to {who} since the restore:\n{lines(wire.rifs(link, 'xrouter', since=t0))}")
+
+
+@needs_peer("xnet")
+def test_xnet_relearns_bpq_side_after_link_restored(wire):
+    _relearns_bpq_side(wire, LINK_XNET, "XNet")
+
+
+@needs_peer("tnn")
+def test_tnn_relearns_bpq_side_after_link_restored(wire):
+    _relearns_bpq_side(wire, LINK_TNN, "TNN")
+
+
+@needs_peer("xrpeer")
+def test_xrpeer_relearns_bpq_side_after_link_restored(wire):
+    _relearns_bpq_side(wire, LINK_XRPEER, "the peer XRouter")

@@ -1,0 +1,26 @@
+# XNet 1.38 start file for the interop suite.
+# Rendered by xnet_console.py: ${NAME} is replaced from the environment.
+# Comment lines start with '#'. XNet runs each line as a console command.
+#
+# One AXUDP link on port 1. Syntax:
+#   att <ipdev> axudp <port> <count> l<local udp> d<dest udp> <dest ip>
+# The destination must be a literal IP (no host names).
+att ip0 axudp 1 1 l${XNET_UDP_LOCAL} d${XNET_UDP_DEST} ${XNET_PEER_IP}
+#
+# Port 1: full duplex, best quality, and connect to any NET/ROM node heard
+# in NODES (acon 1). XNet switches a link to INP3 by itself once the
+# neighbour answers its L3RTT probes; there is no INP3 switch.
+po 1 dup 1
+po 1 quality 255
+po 1 acon 1
+#
+# Send NODES broadcasts on port 1.
+r bc add 1 nodes
+#
+# Router timers in seconds: 1 = NODES broadcast interval (300 to 3000),
+# 6 = L3RTT measurement interval (10 to 3000).
+r param 1 ${XNET_NODES_INTERVAL}
+r param 6 ${XNET_RTT_INTERVAL}
+#
+my call ${XNET_CALL}
+my alias ${XNET_ALIAS}

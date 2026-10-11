@@ -10,8 +10,19 @@
 #   172.28.77.12  linbpq    PN0BQ  / BPQNOD (and app PN0BQ-1 / BQAPP)
 #   172.28.77.13  linbpq2   PN0BQB / BPQB   (only linked to linbpq)
 #   172.28.77.14  linbpq3   PN0BQC / BPQC   (only linked to xrouter)
+#   172.28.77.15  xnet      PN0XN  / XNET   (XNet 1.38, profile xnet)
+#   172.28.77.16  tnn       PN0TN  / TNN    (TheNetNode 1.79, profile tnn)
+#   172.28.77.17  thenet    PN0TH  / THENET (TheNet X1J on tnc2-emu, profile thenet)
+#   172.28.77.18  xrpeer    PN0XP  / XRPEER (a second XRouter, profile xrpeer)
 #
-# XROUTER_TAG picks the XRouter image tag (default latest), LINBPQ_TAG the LinBPQ one.
+# The four peers of other implementations sit behind compose profiles so a
+# run can leave some out (XRI_PEERS in the tests, COMPOSE_PROFILES here).
+# XNet and TheNetNode are built locally from their upstream downloads and
+# must never be pushed anywhere: neither licence allows us to publish them.
+#
+# XROUTER_TAG picks the XRouter image tag (default latest), LINBPQ_TAG the
+# LinBPQ one, XROUTER_PEER_TAG the second XRouter's (the tests default it to
+# the newest version before XROUTER_TAG).
 
 name: xri
 
@@ -45,6 +56,7 @@ services:
       - xrouter-data:/data
       - ./config/xrouter/XROUTER.CFG:/data/XROUTER.CFG:ro
       - ./config/xrouter/ACCESS.SYS:/data/ACCESS.SYS:ro
+      - ./config/xrouter/CRONTAB.SYS:/data/CRONTAB.SYS:ro
     ports:
       - "127.0.0.1:${XRI_XR_TELNET:-17023}:23"
       - "127.0.0.1:${XRI_XR_RHP:-17090}:9000"
@@ -91,6 +103,86 @@ services:
       xri:
         ipv4_address: 172.28.77.14
 
+  xnet:
+    # Built here from the upstream tarball (sha256 checked); never pushed.
+    build: ./peers/xnet
+    image: xri-local/xnet:1.38
+    pull_policy: never
+    container_name: xri-xnet
+    profiles: [xnet]
+    depends_on: [relay]
+    environment:
+      XNET_CALL: PN0XN
+      XNET_ALIAS: XNET
+      XNET_PEER_IP: 172.28.77.10
+      XNET_UDP_LOCAL: "10093"
+      XNET_UDP_DEST: "20008"
+      # XNet's minimum NODES interval is 300 s; L3RTT every 30 s like XRouter.
+      XNET_NODES_INTERVAL: "300"
+      XNET_RTT_INTERVAL: "30"
+    ports:
+      - "127.0.0.1:${XRI_XNET_CONSOLE:-17015}:8023"
+    networks:
+      xri:
+        ipv4_address: 172.28.77.15
+
+  tnn:
+    # Built here from source at a pinned commit (32-bit); never pushed.
+    build: ./peers/tnn
+    image: xri-local/tnn:1.79
+    pull_policy: never
+    container_name: xri-tnn
+    profiles: [tnn]
+    depends_on: [relay]
+    tty: true
+    environment:
+      TNN_CALL: PN0TN
+      TNN_ALIAS: TNN
+      TNN_AXUDP_PORT: "10093"
+      TNN_PEER_CALL: PN0XR
+      TNN_PEER_ALIAS: XRNODE
+      TNN_PEER_IP: 172.28.77.10
+      TNN_PEER_PORT: "20010"
+    ports:
+      - "127.0.0.1:${XRI_TNN_TELNET:-17014}:23"
+    networks:
+      xri:
+        ipv4_address: 172.28.77.16
+
+  thenet:
+    image: ghcr.io/packethacking/tnc2-emu:${TNC2_TAG:-0.1.0}
+    container_name: xri-thenet
+    profiles: [thenet]
+    environment:
+      TNC2_CALL: PN0TH
+      TNC2_ALIAS: THENET
+      # PARMS 3 (radio port quality) = 192 and PARMS 7 (NODES interval) = 60 s.
+      TNC2_POKE: "4C=C0,00;54=3C,00"
+      TNC2_MONITOR: "1"
+    volumes:
+      - thenet-data:/data
+    ports:
+      - "127.0.0.1:${XRI_THENET_CONSOLE:-17013}:8002"
+    networks:
+      xri:
+        ipv4_address: 172.28.77.17
+
+  xrpeer:
+    image: ghcr.io/packethacking/xrouter:${XROUTER_PEER_TAG:-latest}
+    container_name: xri-xrpeer
+    profiles: [xrpeer]
+    depends_on: [relay]
+    cap_add: [NET_RAW]
+    volumes:
+      - xrpeer-data:/data
+      - ./config/xrpeer/XROUTER.CFG:/data/XROUTER.CFG:ro
+      - ./config/xrpeer/ACCESS.SYS:/data/ACCESS.SYS:ro
+    ports:
+      - "127.0.0.1:${XRI_XRPEER_TELNET:-17024}:23"
+    networks:
+      xri:
+        ipv4_address: 172.28.77.18
+
 networks:
   xri:
     name: xri-net
@@ -104,3 +196,5 @@ volumes:
   linbpq-data:
   linbpq2-data:
   linbpq3-data:
+  thenet-data:
+  xrpeer-data:

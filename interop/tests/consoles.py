@@ -121,8 +121,8 @@ class XRouterConsole(Console):
 
     PROMPT = r"\}\s*$|=>\s*$"
 
-    def __init__(self, host: str, port: int, call: str = "PN0TST"):
-        super().__init__(host, port, "xrouter")
+    def __init__(self, host: str, port: int, call: str = "PN0TST", name: str = "xrouter"):
+        super().__init__(host, port, name)
         self.expect(r"(callsign|login|user).*:", 15)
         self.send(call)
         # XRouter answers a login with its CTEXT and no prompt.
@@ -152,3 +152,115 @@ class BpqConsole(Console):
         self.drain(0.2, 2)
         self.send(line)
         return self.drain(wait, 15)
+
+
+class TheNetConsole(Console):
+    """TheNet X1J's sysop console on the TNC-2 emulator's serial port.
+
+    The serial port is a TNC in command mode: Escape gives the `* ` prompt,
+    `C` connects to the node itself, and from then on lines go to the node,
+    which answers with `THENET:PN0TH} ...`. When a connect made from the node
+    ends, the TNC is still connected to the node, so `cmd` keeps working.
+    """
+
+    def __init__(self, host: str, port: int, alias: str = "THENET", call: str = "PN0TH"):
+        super().__init__(host, port, "thenet")
+        self.prompt = f"{alias}:{call}}}"
+        self.enter()
+
+    def enter(self) -> None:
+        """Get to the node prompt from wherever the TNC is."""
+        self.drain(0.5, 3)
+        self.sock.sendall(b"\x1b")
+        self.transcript.append("\n>>> <ESC>\n")
+        self.expect(r"\* ", 10)
+        self.send("C")
+        # "CONNECTED to", or nothing if the TNC was still connected to the node.
+        try:
+            self.expect(r"CONNECTED to", 5)
+        except TimeoutError:
+            pass
+        self.drain(0.8, 5)
+
+    def cmd(self, line: str, wait: float = 2.0) -> str:
+        self.drain(0.2, 2)
+        self.send(line)
+        return self.drain(wait, 20)
+
+    def close(self) -> None:
+        try:
+            self.sock.sendall(b"\x1b")
+            time.sleep(0.3)
+            self.sock.sendall(b"D\r")
+            time.sleep(0.3)
+        except OSError:
+            pass
+        super().close()
+
+
+class XNetConsole(Console):
+    """XNet's console, a raw byte bridge to its terminal (peers/xnet).
+
+    The terminal starts as a TNC in command mode: Escape gives `* `, and
+    `C PN0XN` connects to the node itself, which then prompts `=>`. `sys`
+    (no password on the console) gives the sysop commands.
+    """
+
+    PROMPT = r"=>\s*$"
+
+    def __init__(self, host: str, port: int, call: str = "PN0XN"):
+        super().__init__(host, port, "xnet")
+        self.call = call
+        self.enter()
+
+    def enter(self) -> None:
+        self.drain(0.5, 3)
+        self.sock.sendall(b"\x1b")
+        self.transcript.append("\n>>> <ESC>\n")
+        self.expect(r"\* ", 10)
+        self.send(f"C {self.call}")
+        text = self.expect(r"CONNECTED|ALREADY CONNECTED", 15)
+        if "ALREADY" in text.upper():
+            self.send("")
+        self.expect(self.PROMPT, 15)
+        self.drain(0.5, 3)
+        self.send("sys")
+        self.drain(1.0, 5)
+
+    def cmd(self, line: str, wait: float = 1.5) -> str:
+        self.drain(0.2, 2)
+        self.send(line)
+        return self.drain(wait, 20)
+
+    def close(self) -> None:
+        try:
+            self.sock.sendall(b"\x1b")
+            time.sleep(0.3)
+            self.sock.sendall(b"D\r")
+            time.sleep(0.3)
+        except OSError:
+            pass
+        super().close()
+
+
+class TnnConsole(Console):
+    """TheNetNode's telnet console. Any callsign logs in; `SYSOP` asks for
+    five characters of the sysop password, which is all `S` (peers/tnn)."""
+
+    def __init__(self, host: str, port: int, call: str = "PN0TST", sysop: bool = True):
+        super().__init__(host, port, "tnn")
+        self.expect(r"Login", 20)
+        self.send(call)
+        self.prompt = rf"{call} de PN0TN \(\d\d:\d\d\)>"
+        self.expect(self.prompt, 15)
+        self.drain(0.5, 3)
+        if sysop:
+            self.send("SYSOP")
+            self.expect(r"\d+\s+\d+\s+\d+\s+\d+\s+\d+", 10)
+            self.send("SSSSS")
+            self.drain(1.0, 5)
+
+    def cmd(self, line: str, wait: float = 1.5) -> str:
+        self.drain(0.2, 2)
+        self.send(line)
+        return self.drain(wait, 20)

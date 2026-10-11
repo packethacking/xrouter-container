@@ -14,30 +14,48 @@
 #
 # `finding` points at the matching section of FINDINGS.md; `reported` says
 # when and where it went to the author, if it has.
+#
+# `applies_to` says whose bug it is when it is not the XRouter under test:
+# "peer" is the second XRouter (from/until are then matched against its
+# version, XROUTER_PEER_TAG), and "xnet", "tnn", "thenet" or "linbpq" are
+# those implementations, which do not change with the XRouter version, so
+# such an issue applies whatever XRouter version is under test and has no
+# from/until.
 
 [[issue]]
 id = "no-scheduled-rif"
-title = "XRouter never re-sends its routes on schedule, despite INPBCINTERVAL"
+title = "XRouter ignores INPBCINTERVAL: it re-sends its routes only every 10 minutes"
 finding = 2
 until = "505o"
-tests = ["test_xrouter_refreshes_rif_on_schedule"]
+tests = ["test_xrouter_refreshes_rif_on_schedule", "test_xrouter_refreshes_rif_to_xnet",
+         "test_xrouter_refreshes_rif_to_tnn", "test_xrouter_refreshes_rif_to_xrpeer"]
 
 [[issue]]
 id = "own-node-tt0"
 title = "XRouter sends its own node with trip time 0 (INP3 range is 1 to 60000)"
 finding = 3
 until = "505o"
-tests = ["test_xrouter_rif_fields_in_spec_range"]
+tests = ["test_xrouter_rif_fields_in_spec_range", "test_xrouter_rif_to_xnet_fields_in_spec_range",
+         "test_xrouter_rif_to_tnn_fields_in_spec_range", "test_xrouter_rif_to_xrpeer_fields_in_spec_range"]
 
 [[issue]]
 id = "late-initial-rif"
-title = "XRouter sends no RIF for minutes after the link comes up"
+title = "XRouter holds RIFs back for minutes, after the link comes up and after changes"
 finding = 1
 until = "505c"
 # How long XRouter takes varies from run to run (six minutes in one 505c
 # run, none at all in seven minutes in another), so some of these can pass.
 strict = false
 tests = [
+  "test_xrouter_forwards_recovered_third_party_to_bpq3",
+  "test_xrouter_forwards_negative_info_to_xnet",
+  "test_xrouter_forwards_negative_info_to_tnn",
+  "test_xrouter_forwards_negative_info_to_xrpeer",
+  "test_xnet_relearns_bpq_side_after_link_restored",
+  "test_tnn_relearns_bpq_side_after_link_restored",
+  "test_xrpeer_relearns_bpq_side_after_link_restored",
+  "test_xnet_recovers_when_link_restored",
+  "test_tnn_recovers_when_link_restored",
   "test_xrouter_sends_rif",
   "test_own_node_rip_has_hop_count_one",
   "test_bpq_marks_xrouter_route_as_inp3",
@@ -59,7 +77,16 @@ title = "On link loss XRouter re-advertises the lost routes as reachable"
 finding = 4
 until = "505c"
 strict = false
-tests = ["test_xrouter_tells_bpq3_that_bpq_side_is_gone"]
+tests = [
+  "test_xrouter_tells_bpq3_that_bpq_side_is_gone",
+  "test_xrouter_tells_xnet_that_bpq_side_is_gone",
+  "test_xrouter_tells_tnn_that_bpq_side_is_gone",
+  "test_xrouter_tells_xrpeer_that_bpq_side_is_gone",
+  "test_xrouter_tells_bpq_that_xnet_is_gone",
+  "test_xrouter_tells_bpq_that_tnn_is_gone",
+  "test_xrouter_tells_bpq_that_xrpeer_is_gone",
+  "test_xrouter_tells_bpq_that_thenet_is_gone",
+]
 
 [[issue]]
 id = "rhp-bind-reply-malformed"
@@ -76,3 +103,95 @@ from = "505o"
 until = "505o"
 reported = "2026-10-11, xrouter group; author confirmed and fixed for a later build"
 tests = ["test_rhp_send_on_listener_reply_carries_handle", "test_rhp_sendto_on_listener_reply_carries_handle"]
+
+[[issue]]
+id = "first-rip-without-alias"
+title = "XRouter's first positive RIP for a node often carries no alias"
+finding = 7
+until = "505o"
+# Depends on whether the neighbour first hears of the node in a full update
+# (alias included) or a change update (no alias), which varies run to run.
+strict = false
+tests = [
+  "test_alias_travels_with_route_relayed_to_xnet",
+  "test_alias_travels_with_route_relayed_to_tnn",
+  "test_xrouter_passes_xnet_alias_to_bpq3",
+  "test_xrouter_passes_tnn_alias_to_bpq3",
+  "test_xrouter_passes_xrpeer_alias_to_bpq3",
+  "test_xrouter_passes_thenet_alias_to_bpq3",
+  "test_xnet_knows_aliases_of_relayed_nodes",
+]
+
+[[issue]]
+id = "nodes-first-port-only"
+title = "XRouter sends its scheduled NODES broadcasts only on its first port"
+finding = 6
+until = "505o"
+tests = ["test_xrouter_broadcasts_nodes_to_bpq3"]
+
+# ---------------------------------------------------------------- the second XRouter
+
+[[issue]]
+id = "peer-own-node-tt0"
+title = "The second XRouter sends its own node with trip time 0 (finding 3)"
+applies_to = "peer"
+finding = 3
+until = "505o"
+tests = ["test_xrpeer_rif_fields_in_spec_range"]
+
+[[issue]]
+id = "peer-no-scheduled-rif"
+title = "The second XRouter never re-sends its routes on schedule (finding 2)"
+applies_to = "peer"
+finding = 2
+until = "505o"
+tests = ["test_xrpeer_refreshes_rif_on_schedule"]
+
+[[issue]]
+id = "peer-late-initial-rif"
+title = "The second XRouter sends no RIF for minutes after its link comes back (finding 1)"
+applies_to = "peer"
+finding = 1
+until = "505c"
+strict = false
+tests = ["test_xrpeer_recovers_when_link_restored"]
+
+# ---------------------------------------------------------------- other implementations
+
+[[issue]]
+id = "xnet-own-node-tt0"
+title = "XNet 1.38 sends its own node with trip time 0, like XRouter"
+applies_to = "xnet"
+finding = 9
+tests = ["test_xnet_rif_fields_in_spec_range"]
+
+[[issue]]
+id = "xnet-no-rif-refresh"
+title = "XNet 1.38 sends its own node by RIF only when the link comes up, never again"
+applies_to = "xnet"
+finding = 9
+tests = ["test_xnet_refreshes_rif_on_schedule"]
+
+[[issue]]
+id = "tnn-no-own-rif-refresh"
+title = "TNN 1.79 sends its own node by RIF only when the link comes up; its full refresh leaves it out"
+applies_to = "tnn"
+finding = 9
+tests = ["test_tnn_refreshes_rif_on_schedule"]
+
+[[issue]]
+id = "linbpq-duplicate-rip"
+title = "LinBPQ sometimes lists one destination twice in a RIF"
+applies_to = "linbpq"
+finding = 5
+strict = false
+tests = ["test_rif_has_one_rip_per_destination"]
+
+[[issue]]
+id = "thenet-goes-silent"
+title = "TheNet X1J on tnc2-emu 0.1.0 sometimes stops transmitting altogether"
+applies_to = "thenet"
+finding = 11
+# Seen once in four full runs; the node then never answers again.
+strict = false
+tests = ["test_thenet_recovers_when_link_restored"]

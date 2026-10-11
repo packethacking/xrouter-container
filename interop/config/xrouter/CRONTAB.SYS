@@ -1,0 +1,16 @@
+# CRONTAB.SYS for the XRouter under test.
+#
+# Work-around for FINDINGS "XRouter broadcasts NODES only on its first
+# port": with NODESINTERVAL=1 XRouter's scheduled NODES broadcasts only ever
+# go out on port 1 (LinBPQ). XNet and TheNet learn their neighbours from
+# NODES (XNet does not even open the link until it hears one), so without
+# this the peer tests could not get started. BC <port> sends an immediate
+# NODES broadcast on that port (MAN BCAST(1)); this does it every minute on
+# the peer ports 3 to 6. Port 2 (LinBPQ3) is left alone on purpose so that
+# test_xrouter_broadcasts_nodes_to_bpq3 still sees the bug.
+#
+# <min> <hour> <date> <month> <day> <command> [args]
+* * * * * BC 3
+* * * * * BC 4
+* * * * * BC 5
+* * * * * BC 6

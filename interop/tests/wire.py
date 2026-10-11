@@ -31,6 +31,29 @@ class Wire:
                 out.append(r)
         return out
 
+    def stalls(self) -> list[tuple[float, float]]:
+        """(start, end) of every spell the relay itself was frozen (the host
+        stalled), from its `stall` events."""
+        out = []
+        if not os.path.exists(self.path):
+            return out
+        with open(self.path) as f:
+            for line in f:
+                if '"stall"' not in line:
+                    continue
+                try:
+                    r = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if r.get("event") == "stall":
+                    out.append((r["t"] - r["stall_s"], r["t"]))
+        return out
+
+    def near_stall(self, t: float, before: float = 3.0, after: float = 20.0) -> bool:
+        """True if time t falls in or just after a host stall, when every
+        node's timers fire at once and links may reset."""
+        return any(s - before <= t <= e + after for s, e in self.stalls())
+
     def frames(self, link: str | None = None, frm: str | None = None, since: float | None = None,
                kind: str | None = None, forwarded_only: bool = True) -> list[dict]:
         out = []

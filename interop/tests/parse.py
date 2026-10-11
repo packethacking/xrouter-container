@@ -108,3 +108,95 @@ def bpq_node_routes(text: str) -> dict[str, list[dict]]:
 
 def bpq_node_list(text: str) -> set[str]:
     return set(re.findall(r"\b([A-Z0-9#]+:[A-Z0-9]+(?:-\d+)?)\b", text))
+
+
+def xr_node_plus(text: str) -> dict[str, dict]:
+    """XRouter `N +`: call -> qual, via, tt (trip time, s), hops, obs2 (INP3 obsolescence)."""
+    out = {}
+    for ln in text.splitlines():
+        p = ln.split()
+        if len(p) == 8 and ":" in p[0]:
+            try:
+                out[p[0].split(":")[1]] = {"alias": p[0].split(":")[0], "qual": int(p[1]), "port": int(p[3]),
+                                           "via": p[4], "tt": float(p[5]), "hops": int(p[6]),
+                                           "obs2": int(p[7]), "line": ln}
+            except ValueError:
+                pass
+    return out
+
+
+# ---------------------------------------------------------------- XNet
+
+def xnet_nodes(text: str) -> dict[str, str]:
+    """XNet `n`: call -> alias (`#tmp` when XNet learned no alias)."""
+    return {c: a for a, c in re.findall(r"([A-Za-z0-9#]+):([A-Z0-9]+(?:-\d+)?)", text)}
+
+
+def xnet_node_times(text: str) -> dict[str, float]:
+    """XNet `n +`: call -> trip time in seconds."""
+    return {c: float(t) for _, c, t in re.findall(r"([A-Za-z0-9#]+):([A-Z0-9]+(?:-\d+)?)\s+([\d.]+)", text)}
+
+
+def xnet_route(text: str) -> list[dict]:
+    """XNet `n <alias>`: `> PN0BQB    PN0XR     255/6   0.05s  4 hops`.
+    XNet counts a direct neighbour as 2 hops, one more than INP3 does."""
+    out = []
+    for m in re.finditer(r"^([> ])\s*([A-Z0-9]+(?:-\d+)?)\s+([A-Z0-9]+(?:-\d+)?)\s+(\d+)/(\d+)\s+([\d.]+)s\s+(\d+) hops",
+                         text, re.M):
+        out.append({"active": m.group(1) == ">", "call": m.group(2), "via": m.group(3), "qual": int(m.group(4)),
+                    "obs": int(m.group(5)), "tt": float(m.group(6)), "hops": int(m.group(7)), "line": m.group(0)})
+    return out
+
+
+def xnet_links(text: str) -> dict[str, dict]:
+    """XNet `l`: ` 1:PN0XR        9 I   0 ...` -> call -> port, link type letter."""
+    out = {}
+    for m in re.finditer(r"^\s*(\d+):([A-Z0-9]+(?:-\d+)?)\s+\d+\s+([A-Z])\b", text, re.M):
+        out[m.group(2)] = {"port": int(m.group(1)), "type": m.group(3), "line": m.group(0)}
+    return out
+
+
+# ---------------------------------------------------------------- TheNetNode
+
+def tnn_nodes(text: str) -> dict[str, str]:
+    """TNN `NODES`: call -> alias. TNN prints a call in lower case when the
+    node carries INP3 options, and an empty alias as `:CALL`."""
+    return {c.upper(): a for a, c in re.findall(r"(?<![\w:])([A-Z0-9#]*):([A-Za-z0-9]+(?:-\d+)?)", text)}
+
+
+def tnn_routes(text: str) -> dict[str, dict]:
+    """TNN `ROUTES`: `PN0XR       0    I   0   10/10      440/130       50000 conn.`"""
+    out = {}
+    for m in re.finditer(r"^([A-Z0-9]+)\s+(\d+)\s+([A-Z])\s+(\d+)\s+(\d+)/(\d+)\s+(\d+)/(\d+)\s+(\d+)\s+(\S+)",
+                         text, re.M):
+        out[m.group(1)] = {"ssid": int(m.group(2)), "type": m.group(3), "port": int(m.group(4)),
+                           "srtt_ms": int(m.group(7)), "maxt_ms": int(m.group(9)), "state": m.group(10),
+                           "line": m.group(0)}
+    return out
+
+
+def tnn_node_routes(text: str) -> list[dict]:
+    """TNN `NODES <alias>`: `>    450     40      0   4   DG   0     410  0 PN0XR`.
+    T is the total trip time in ms, LT the hop count (TNN counts a direct
+    neighbour as 2, one more than INP3 does), Route the neighbour."""
+    out = []
+    for m in re.finditer(r"^([> ])\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+([A-Z]+)\s+(\d+)\s+(\d+)\s+(\d+)\s+([A-Z0-9]+(?:-\d+)?)",
+                         text, re.M):
+        out.append({"active": m.group(1) == ">", "tt_ms": int(m.group(2)), "rxt": int(m.group(3)),
+                    "hops": int(m.group(5)), "mode": m.group(6), "via": m.group(10), "line": m.group(0)})
+    return out
+
+
+# ---------------------------------------------------------------- TheNet X1J
+
+def thenet_nodes(text: str) -> dict[str, str]:
+    return {c: a for a, c in re.findall(r"([A-Z0-9#]+):([A-Z0-9]+(?:-\d+)?)", text.split("}", 1)[-1])}
+
+
+def thenet_routes(text: str) -> dict[str, dict]:
+    """TheNet `ROUTES`: `  0 XRNODE:PN0XR 192 10` (port, neighbour, quality, node count)."""
+    out = {}
+    for m in re.finditer(r"^\s*(\d+)\s+(?:([A-Z0-9#]+):)?([A-Z0-9]+(?:-\d+)?)\s+(\d+)\s+(\d+)", text, re.M):
+        out[m.group(3)] = {"port": int(m.group(1)), "qual": int(m.group(4)), "nodes": int(m.group(5)),
+                           "line": m.group(0)}
+    return out

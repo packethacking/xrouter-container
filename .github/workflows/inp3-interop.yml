@@ -1,8 +1,11 @@
 name: inp3-interop
 
-# XRouter <-> LinBPQ NET/ROM + INP3 interoperability suite (interop/).
+# XRouter NET/ROM + INP3 interoperability suite (interop/): LinBPQ, XNet,
+# TheNetNode, TheNet X1J and a second XRouter around the XRouter under test.
 # Runs against the newest XRouter and the few versions before it, so a change
 # in behaviour between releases shows up as a column of different results.
+# XNet and TheNetNode images are built in the job from their upstream
+# downloads and never pushed (neither licence allows publishing them).
 
 on:
   workflow_dispatch:
@@ -41,7 +44,7 @@ jobs:
   interop:
     needs: plan
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -56,10 +59,16 @@ jobs:
         run: pip install -r interop/requirements.txt
       - name: pull images
         run: |
-          docker pull ghcr.io/packethacking/xrouter:${{ matrix.tag }}-amd64
-          docker tag ghcr.io/packethacking/xrouter:${{ matrix.tag }}-amd64 ghcr.io/packethacking/xrouter:${{ matrix.tag }}
+          peer=$(python interop/tests/xrversions.py peer ${{ matrix.tag }})
+          echo "XROUTER_PEER_TAG=$peer" >> "$GITHUB_ENV"
+          echo "second XRouter: $peer"
+          for t in ${{ matrix.tag }} $peer; do
+            docker pull ghcr.io/packethacking/xrouter:$t-amd64
+            docker tag ghcr.io/packethacking/xrouter:$t-amd64 ghcr.io/packethacking/xrouter:$t
+          done
           docker pull m0lte/linbpq:latest
           docker pull python:3.12-slim
+          docker pull ghcr.io/packethacking/tnc2-emu:0.1.0
       - name: run suite
         env:
           XROUTER_TAG: ${{ matrix.tag }}
@@ -74,7 +83,7 @@ jobs:
           import os, xml.etree.ElementTree as ET
           tag = "${{ matrix.tag }}"
           p = f"interop/out/{tag}/junit.xml"
-          print(f"### XRouter {tag}\n")
+          print(f"### XRouter {tag} (second XRouter ${{ env.XROUTER_PEER_TAG }})\n")
           if not os.path.exists(p):
               print("no results (the stack did not start?)")
               raise SystemExit
