@@ -2,8 +2,8 @@ name: build-and-publish
 
 # Drives a full multi-arch publish to GitHub Container Registry from
 # versions.json. The matrix is derived from the manifest, so adding
-# a new XRouter release requires no changes here — just edit
-# versions.json and push.
+# a new XRouter release requires no changes here; just edit
+# versions.json (scripts/ingest.sh does that) and push.
 
 on:
   workflow_dispatch:
@@ -36,22 +36,34 @@ jobs:
       - id: set
         run: |
           set -euo pipefail
-          builds=$(jq -c '
+          # One cell per binary. The current binary for a (version, arch)
+          # is tagged <ver>-<arch> and <ver>-<arch>-<sha8>; a binary that
+          # upstream later replaced (listed under "previous") keeps only
+          # its permanent <ver>-<arch>-<sha8> tag, so old results stay
+          # reproducible. tag is the one the smoke test pulls.
+          builds=$(jq -c --arg img "$IMAGE" '
+            def plat: if   . == "amd64" then "linux/amd64"
+                      elif . == "arm64" then "linux/arm64"
+                      elif . == "armv7" then "linux/arm/v7"
+                      else null end;
             [
               .versions | to_entries[] as $v
-              | $v.value | to_entries[]
+              | $v.value | to_entries[] as $a
+              | ( { e: $a.value, current: true },
+                  ( $a.value.previous // [] | .[] | { e: ., current: false } ) )
+              | ($v.key + "-" + $a.key) as $base
+              | ($base + "-" + .e.sha256[0:8]) as $perm
               | {
                   version: $v.key,
-                  arch: .key,
-                  platform: (
-                    if   .key == "amd64" then "linux/amd64"
-                    elif .key == "arm64" then "linux/arm64"
-                    elif .key == "armv7" then "linux/arm/v7"
-                    else null end
-                  ),
-                  url: .value.url,
-                  sha256: .value.sha256,
-                  packages: (.value.packages // "")
+                  arch: $a.key,
+                  platform: ($a.key | plat),
+                  url: .e.url,
+                  sha256: .e.sha256,
+                  packages: (.e.packages // ""),
+                  tag: (if .current then $base else $perm end),
+                  tags: (if .current
+                         then $img + ":" + $base + "," + $img + ":" + $perm
+                         else $img + ":" + $perm end)
                 }
             ]
           ' versions.json)
@@ -72,7 +84,9 @@ jobs:
           echo "support_sha256=$(jq -r '.support.sha256' versions.json)" >> "$GITHUB_OUTPUT"
 
   build:
-    # One cell per (version, arch). Pushes ghcr.io/.../xrouter:<ver>-<arch>.
+    # One cell per binary. Pushes ghcr.io/.../xrouter:<ver>-<arch> and
+    # :<ver>-<arch>-<sha8> for the current binary, only the sha8 tag for
+    # a previous one.
     needs: discover
     runs-on: ubuntu-latest
     permissions:
@@ -98,7 +112,7 @@ jobs:
           file: docker/Dockerfile
           platforms: ${{ matrix.platform }}
           push: true
-          tags: ${{ env.IMAGE }}:${{ matrix.version }}-${{ matrix.arch }}
+          tags: ${{ matrix.tags }}
           build-args: |
             SUPPORT_URL=${{ needs.discover.outputs.support_url }}
             SUPPORT_SHA256=${{ needs.discover.outputs.support_sha256 }}
@@ -133,7 +147,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: pull, boot, verify, stop
         env:
-          IMG: ${{ env.IMAGE }}:${{ matrix.version }}-${{ matrix.arch }}
+          IMG: ${{ env.IMAGE }}:${{ matrix.tag }}
           PLAT: ${{ matrix.platform }}
           VER: ${{ matrix.version }}
         run: |
@@ -157,7 +171,7 @@ jobs:
     # Fuse the per-arch tags for each version into a multi-arch
     # manifest list at :<ver>. Versions that ship only some arches
     # produce a list with just those arches; pulls for missing arches
-    # will surface "no matching manifest" — appropriate behaviour.
+    # will surface "no matching manifest", which is appropriate.
     needs: [discover, smoke-test]
     runs-on: ubuntu-latest
     permissions:

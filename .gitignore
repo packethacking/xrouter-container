@@ -9,3 +9,4 @@ Screenshot*.png
 
 # Local scratch
 /tmp-*
+__pycache__/

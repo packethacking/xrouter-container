@@ -2,9 +2,11 @@
 # Build XRouter Docker images for one or all architectures, locally.
 #
 # Reads versions.json, picks the URLs/shas for the requested version,
-# and drives `docker buildx build`. Each arch yields a tag of the form
-# packethacking/xrouter:<version>-<arch>; with --multi the function
-# instead pushes a multi-arch manifest list, which requires a registry.
+# and drives `docker buildx build`. Each arch yields tags of the form
+# packethacking/xrouter:<version>-<arch> and <version>-<arch>-<sha8>,
+# plus <version>-<arch>-<sha8> for each replaced "previous" binary;
+# with --multi the function instead pushes a multi-arch manifest list,
+# which requires a registry.
 #
 # Usage:
 #   scripts/build.sh                     # latest version, all arches, --load
@@ -35,18 +37,10 @@ if [ -z "$(mf "d['versions'].get('$VERSION')")" ]; then
     exit 1
 fi
 
-build_arch() {
-    local arch="$1" platform="$2"
-    local bin_url bin_sha
-    bin_url=$(mf "d['versions']['$VERSION'].get('$arch',{}).get('url','')")
-    bin_sha=$(mf "d['versions']['$VERSION'].get('$arch',{}).get('sha256','')")
-    local pkgs
-    pkgs=$(mf "d['versions']['$VERSION'].get('$arch',{}).get('packages','')")
-    if [ -z "$bin_url" ]; then
-        echo "skip: $VERSION has no $arch build" >&2
-        return 0
-    fi
-    echo "==> building packethacking/xrouter:$VERSION-$arch ($platform)"
+# One docker buildx build. Extra arguments are -t tags.
+build_one() {
+    local platform="$1" bin_url="$2" bin_sha="$3" pkgs="$4"
+    shift 4
     docker buildx build \
         --platform "$platform" \
         --build-arg SUPPORT_URL="$SUPPORT_URL" \
@@ -56,9 +50,38 @@ build_arch() {
         --build-arg XROUTER_VERSION="$VERSION" \
         --build-arg RUNTIME_PACKAGES="$pkgs" \
         -f docker/Dockerfile \
-        -t "packethacking/xrouter:$VERSION-$arch" \
+        "$@" \
         --load \
         .
+}
+
+# Builds the current binary as <version>-<arch> and <version>-<arch>-<sha8>,
+# then any binaries upstream later replaced ("previous" in versions.json)
+# as <version>-<arch>-<sha8> only.
+build_arch() {
+    local arch="$1" platform="$2"
+    local bin_url bin_sha pkgs
+    bin_url=$(mf "d['versions']['$VERSION'].get('$arch',{}).get('url','')")
+    bin_sha=$(mf "d['versions']['$VERSION'].get('$arch',{}).get('sha256','')")
+    pkgs=$(mf "d['versions']['$VERSION'].get('$arch',{}).get('packages','')")
+    if [ -z "$bin_url" ]; then
+        echo "skip: $VERSION has no $arch build" >&2
+        return 0
+    fi
+    echo "==> building packethacking/xrouter:$VERSION-$arch ($platform)"
+    build_one "$platform" "$bin_url" "$bin_sha" "$pkgs" \
+        -t "packethacking/xrouter:$VERSION-$arch" \
+        -t "packethacking/xrouter:$VERSION-$arch-${bin_sha:0:8}"
+    local prev
+    prev=$(python3 -c "import json; d=json.load(open('versions.json'))
+for p in d['versions']['$VERSION']['$arch'].get('previous', []):
+    print(p['url'], p['sha256'], p.get('packages', '').replace(' ', ','))")
+    while read -r p_url p_sha p_pkgs; do
+        [ -n "$p_url" ] || continue
+        echo "==> building packethacking/xrouter:$VERSION-$arch-${p_sha:0:8} (previous, $platform)"
+        build_one "$platform" "$p_url" "$p_sha" "${p_pkgs//,/ }" \
+            -t "packethacking/xrouter:$VERSION-$arch-${p_sha:0:8}"
+    done <<<"$prev"
 }
 
 case "$ARCH_FILTER" in

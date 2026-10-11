@@ -1,5 +1,5 @@
 {
-  "comment": "Edit this file to add a new XRouter version. After uploading each binary to OARC folder 4851 under the canonical name 'xrouter-<ver>-<arch>', add an entry below with its sha256. Update 'latest_<arch>' if this build supersedes the previous newest for that architecture. The 'latest' overall pointer names the newest version present in the matrix; the per-arch pointers drive the multi-arch :latest manifest list since not every release ships every arch.",
+  "comment": "Build matrix. scripts/ingest.sh maintains this file (see README, 'Adding a new version'). Each (version, arch) entry is the binary mirrored on OARC folder 4851 as 'xrouter-<ver>-<arch>', with its sha256 and, for a dynamically linked build, the Debian 'packages' it needs. If upstream silently replaces a binary, the new one is mirrored as 'xrouter-<ver>-<arch>-<sha8>' and the old entry moves into that arch's 'previous' list, which is still built and tagged '<ver>-<arch>-<sha8>'. 'latest' names the newest version present; the per-arch 'latest_<arch>' pointers drive the multi-arch :latest manifest list since not every release ships every arch.",
   "support": {
     "version": "504k",
     "url": "https://compute.oarc.uk/storage/public/folders/4851/xrouter-support-504k.zip",
