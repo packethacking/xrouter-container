@@ -30,6 +30,7 @@ HOST = "127.0.0.1"
 XR_TELNET = int(os.environ.get("XRI_XR_TELNET", "17023"))
 BPQ_TELNET = int(os.environ.get("XRI_BPQ_TELNET", "17010"))
 BPQ2_TELNET = int(os.environ.get("XRI_BPQ2_TELNET", "17011"))
+BPQ3_TELNET = int(os.environ.get("XRI_BPQ3_TELNET", "17012"))
 RELAY_CTL = int(os.environ.get("XRI_RELAY_PORT", "17080"))
 
 # Names used throughout the tests.
@@ -37,10 +38,12 @@ XR_CALL, XR_ALIAS = "PN0XR", "XRNODE"
 BPQ_CALL, BPQ_ALIAS = "PN0BQ", "BPQNOD"
 BPQ_APP_CALL, BPQ_APP_ALIAS = "PN0BQ-1", "BQAPP"
 BPQ2_CALL, BPQ2_ALIAS = "PN0BQB", "BPQB"
+BPQ3_CALL, BPQ3_ALIAS = "PN0BQC", "BPQC"
 LINK = "xr-bpq"          # relay link between XRouter and LinBPQ
 LINK2 = "bpq-bpq2"       # relay link between LinBPQ and LinBPQ2
+LINK3 = "xr-bpq3"        # relay link between XRouter and LinBPQ3
 
-SERVICES = ["relay", "xrouter", "linbpq", "linbpq2"]
+SERVICES = ["relay", "xrouter", "linbpq", "linbpq2", "linbpq3"]
 
 
 def compose(*args: str, check: bool = True) -> subprocess.CompletedProcess:
@@ -83,10 +86,12 @@ def _collect_logs() -> None:
         with open(os.path.join(OUT, f"{svc}.log"), "w") as f:
             f.write(r.stdout + r.stderr)
     # XRouter keeps its real logs in /data/LOG; LinBPQ in /data/logs.
-    for svc, path in [("xrouter", "/data/LOG"), ("linbpq", "/data/logs"), ("linbpq2", "/data/logs")]:
+    for svc, path in [("xrouter", "/data/LOG"), ("linbpq", "/data/logs"), ("linbpq2", "/data/logs"),
+                      ("linbpq3", "/data/logs")]:
         dest = os.path.join(OUT, f"{svc}-files")
         subprocess.run(["docker", "cp", f"xri-{svc}:{path}", dest], capture_output=True)
-    for svc, files in [("xrouter", ["XRNODES"]), ("linbpq", ["BPQNODES.dat"]), ("linbpq2", ["BPQNODES.dat"])]:
+    for svc, files in [("xrouter", ["XRNODES"]), ("linbpq", ["BPQNODES.dat"]), ("linbpq2", ["BPQNODES.dat"]),
+                        ("linbpq3", ["BPQNODES.dat"])]:
         for name in files:
             subprocess.run(["docker", "cp", f"xri-{svc}:/data/{name}", os.path.join(OUT, f"{svc}-{name}")],
                            capture_output=True)
@@ -104,7 +109,8 @@ def stack():
     if up.returncode != 0:
         pytest.exit(f"docker compose up failed:\n{up.stdout}\n{up.stderr}", returncode=3)
     started = time.time()
-    ok = wait_for(lambda: _port_open(XR_TELNET) and _port_open(BPQ_TELNET) and _port_open(BPQ2_TELNET), 60)
+    ok = wait_for(lambda: _port_open(XR_TELNET) and _port_open(BPQ_TELNET) and _port_open(BPQ2_TELNET)
+                  and _port_open(BPQ3_TELNET), 60)
     if not ok:
         _collect_logs()
         pytest.exit("nodes did not open their telnet ports within 60 s; see the logs in " + OUT, returncode=3)
@@ -127,7 +133,8 @@ def converged(stack, wire):
     depend on a step that did not happen fail with their own evidence."""
     def done():
         return (wire.rifs(LINK, "xrouter") and
-                any(rip["call"] == BPQ2_CALL for rip, _ in wire.rips(LINK, "linbpq")))
+                any(rip["call"] == BPQ2_CALL for rip, _ in wire.rips(LINK, "linbpq")) and
+                any(rip["call"] == BPQ2_CALL for rip, _ in wire.rips(LINK3, "xrouter")))
     wait_for(done, 120, 3)
     # One more NODES interval so both NODES tables are populated too.
     time.sleep(5)
@@ -149,6 +156,12 @@ def bpq(stack):
 @pytest.fixture
 def bpq2(stack):
     with BpqConsole(HOST, BPQ2_TELNET, name="linbpq2") as c:
+        yield c
+
+
+@pytest.fixture
+def bpq3(stack):
+    with BpqConsole(HOST, BPQ3_TELNET, name="linbpq3") as c:
         yield c
 
 

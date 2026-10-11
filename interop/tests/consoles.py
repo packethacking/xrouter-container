@@ -91,6 +91,18 @@ class Console:
         text, self.buf = self.buf, ""
         return text
 
+    def ask(self, line: str, pattern: str, timeout: float = 20.0) -> str:
+        """Send a line and wait for `pattern`. Returns everything received; on a
+        timeout it returns what did arrive, so a failed assert can show it."""
+        self.drain(0.2, 2)
+        self.send(line)
+        try:
+            text = self.expect(pattern, timeout)
+        except TimeoutError:
+            text, self.buf = self.buf, ""
+            return text
+        return text + self.drain(0.5, 3)
+
     def close(self) -> None:
         try:
             self.sock.close()

@@ -9,6 +9,7 @@
 #   172.28.77.11  xrouter   PN0XR  / XRNODE (and app PN0XR-1 / XRAPP)
 #   172.28.77.12  linbpq    PN0BQ  / BPQNOD (and app PN0BQ-1 / BQAPP)
 #   172.28.77.13  linbpq2   PN0BQB / BPQB   (only linked to linbpq)
+#   172.28.77.14  linbpq3   PN0BQC / BPQC   (only linked to xrouter)
 #
 # XROUTER_TAG picks the XRouter image tag (default latest), LINBPQ_TAG the LinBPQ one.
 
@@ -76,6 +77,19 @@ services:
       xri:
         ipv4_address: 172.28.77.13
 
+  linbpq3:
+    image: m0lte/linbpq:${LINBPQ_TAG:-latest}
+    container_name: xri-linbpq3
+    depends_on: [relay]
+    volumes:
+      - linbpq3-data:/data
+      - ./config/linbpq3/bpq32.cfg:/data/bpq32.cfg:ro
+    ports:
+      - "127.0.0.1:${XRI_BPQ3_TELNET:-17012}:8010"
+    networks:
+      xri:
+        ipv4_address: 172.28.77.14
+
 networks:
   xri:
     name: xri-net
@@ -88,3 +102,4 @@ volumes:
   xrouter-data:
   linbpq-data:
   linbpq2-data:
+  linbpq3-data:

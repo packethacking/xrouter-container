@@ -2,17 +2,48 @@
   "links": [
     {
       "name": "xr-bpq",
-      "a": {"name": "xrouter", "host": "172.28.77.11", "port": 10093},
-      "b": {"name": "linbpq", "host": "172.28.77.12", "port": 10093},
+      "a": {
+        "name": "xrouter",
+        "host": "172.28.77.11",
+        "port": 10093
+      },
+      "b": {
+        "name": "linbpq",
+        "host": "172.28.77.12",
+        "port": 10093
+      },
       "a_port": 20001,
       "b_port": 20002
     },
     {
       "name": "bpq-bpq2",
-      "a": {"name": "linbpq", "host": "172.28.77.12", "port": 10094},
-      "b": {"name": "linbpq2", "host": "172.28.77.13", "port": 10093},
+      "a": {
+        "name": "linbpq",
+        "host": "172.28.77.12",
+        "port": 10094
+      },
+      "b": {
+        "name": "linbpq2",
+        "host": "172.28.77.13",
+        "port": 10093
+      },
       "a_port": 20004,
       "b_port": 20003
+    },
+    {
+      "name": "xr-bpq3",
+      "a": {
+        "name": "xrouter",
+        "host": "172.28.77.11",
+        "port": 10094
+      },
+      "b": {
+        "name": "linbpq3",
+        "host": "172.28.77.14",
+        "port": 10093
+      },
+      "a_port": 20005,
+      "b_port": 20006
     }
   ]
 }
