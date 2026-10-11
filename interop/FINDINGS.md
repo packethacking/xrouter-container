@@ -39,7 +39,7 @@ Wire evidence can be affected by the test machine itself: when the host stalls f
 
 ## 1. 505a and 505c hold RIFs back for minutes after the link comes up (fixed in 505o)
 
-Issue: https://github.com/packethacking/xrouter-container/issues/ISSUE_7
+Issue: https://github.com/packethacking/xrouter-container/issues/8
 
 **Versions:** 505a, 505c fail. 505o passes.
 
@@ -71,7 +71,7 @@ XRouter does learn LinBPQ's routes from LinBPQ's RIFs, so until then INP3 works 
 
 ## 2. XRouter ignores INPBCINTERVAL: it re-sends its routes only every 10 minutes
 
-Issue: https://github.com/packethacking/xrouter-container/issues/ISSUE_3
+Issue: https://github.com/packethacking/xrouter-container/issues/4
 
 **Versions:** 505a, 505c and 505o fail.
 
@@ -112,7 +112,7 @@ Early in a run `N BC T` shows `Last Full Update: ---` and `Next Full Update: ---
 
 ## 3. XRouter sends its own node with trip time 0
 
-Issue: https://github.com/packethacking/xrouter-container/issues/ISSUE_4
+Issue: https://github.com/packethacking/xrouter-container/issues/5
 
 **Versions:** 505a, 505c and 505o fail, towards every INP3 neighbour (LinBPQ, XNet, TNN, another XRouter). XNet 1.38 does the same (finding 9).
 
@@ -134,7 +134,7 @@ LinBPQ copes: it adds its own link time on receipt, and relays XRouter on to Lin
 
 ## 4. 505a and 505c: on link loss, XRouter re-advertises the lost routes, or never withdraws them
 
-Issue: https://github.com/packethacking/xrouter-container/issues/ISSUE_8
+Issue: https://github.com/packethacking/xrouter-container/issues/9
 
 **Versions:** 505a and 505c fail. 505o passes.
 
@@ -176,7 +176,7 @@ It looks like a race between `SendRIFToNewNeighbour` and the regular send path a
 
 ## 6. XRouter sends its scheduled NODES broadcasts only on its first port
 
-Issue: https://github.com/packethacking/xrouter-container/issues/ISSUE_5
+Issue: https://github.com/packethacking/xrouter-container/issues/6
 
 **Versions:** 505a, 505c and 505o fail in the suite; 504z too in a bench run (below). Every version we tried.
 
@@ -197,7 +197,7 @@ The only NODES XRouter sends on the other ports unprompted is the `NODES_POLL` a
 
 ## 7. XRouter's first positive RIP for a node often carries no alias
 
-Issue: https://github.com/packethacking/xrouter-container/issues/ISSUE_6
+Issue: https://github.com/packethacking/xrouter-container/issues/7
 
 **Versions:** 505a, 505c and 505o, in some runs and not others (each version failed at least one of these checks in at least one of our runs). A non-strict known issue, because it depends on timing.
 
@@ -221,7 +221,7 @@ TheNet (PN0TH), which XRouter turns into an INP3 route (see Observations), never
 
 ## 12. 505o: the RHP bind reply is not valid JSON
 
-Issue: https://github.com/packethacking/xrouter-container/issues/ISSUE_1
+Issue: https://github.com/packethacking/xrouter-container/issues/2
 
 **Versions:** 505o fails. 505a and 505c pass. Reported on the xrouter group on 2026-10-11; the author confirmed it and has fixed it for a later build.
 
@@ -237,7 +237,7 @@ Issue: https://github.com/packethacking/xrouter-container/issues/ISSUE_1
 
 ## 13. 505o: RHP send and sendto on a listening socket reply without the handle
 
-Issue: https://github.com/packethacking/xrouter-container/issues/ISSUE_2
+Issue: https://github.com/packethacking/xrouter-container/issues/3
 
 **Versions:** 505o fails. 505a and 505c pass. Reported on the xrouter group on 2026-10-11; the author confirmed it for send, found the same in sendto, and has fixed both for a later build.
 

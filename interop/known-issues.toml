@@ -32,7 +32,7 @@
 
 [[issue]]
 id = "no-scheduled-rif"
-issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_3"
+issue = "https://github.com/packethacking/xrouter-container/issues/4"
 title = "XRouter ignores INPBCINTERVAL: it re-sends its routes only every 10 minutes"
 finding = 2
 until = "505o"
@@ -41,7 +41,7 @@ tests = ["test_xrouter_refreshes_rif_on_schedule", "test_xrouter_refreshes_rif_t
 
 [[issue]]
 id = "own-node-tt0"
-issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_4"
+issue = "https://github.com/packethacking/xrouter-container/issues/5"
 title = "XRouter sends its own node with trip time 0 (INP3 range is 1 to 60000)"
 finding = 3
 until = "505o"
@@ -50,7 +50,7 @@ tests = ["test_xrouter_rif_fields_in_spec_range", "test_xrouter_rif_to_xnet_fiel
 
 [[issue]]
 id = "late-initial-rif"
-issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_7"
+issue = "https://github.com/packethacking/xrouter-container/issues/8"
 fixed_in = "505o"
 title = "XRouter holds RIFs back for minutes, after the link comes up and after changes"
 finding = 1
@@ -85,7 +85,7 @@ tests = [
 
 [[issue]]
 id = "stale-routes-on-link-loss"
-issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_8"
+issue = "https://github.com/packethacking/xrouter-container/issues/9"
 fixed_in = "505o"
 title = "On link loss XRouter re-advertises the lost routes as reachable"
 finding = 4
@@ -105,7 +105,7 @@ tests = [
 [[issue]]
 id = "rhp-bind-reply-malformed"
 finding = 12
-issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_1"
+issue = "https://github.com/packethacking/xrouter-container/issues/2"
 title = "RHP bind reply is not valid JSON (type bind, errText label missing)"
 from = "505o"
 until = "505o"
@@ -115,7 +115,7 @@ tests = ["test_rhp_bind_reply_is_valid_json"]
 [[issue]]
 id = "rhp-listener-reply-no-handle"
 finding = 13
-issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_2"
+issue = "https://github.com/packethacking/xrouter-container/issues/3"
 title = "RHP send and sendto on a listening socket reply without the handle"
 from = "505o"
 until = "505o"
@@ -124,7 +124,7 @@ tests = ["test_rhp_send_on_listener_reply_carries_handle", "test_rhp_sendto_on_l
 
 [[issue]]
 id = "first-rip-without-alias"
-issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_6"
+issue = "https://github.com/packethacking/xrouter-container/issues/7"
 title = "XRouter's first positive RIP for a node often carries no alias"
 finding = 7
 until = "505o"
@@ -144,7 +144,7 @@ tests = [
 
 [[issue]]
 id = "nodes-first-port-only"
-issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_5"
+issue = "https://github.com/packethacking/xrouter-container/issues/6"
 title = "XRouter sends its scheduled NODES broadcasts only on its first port"
 finding = 6
 until = "505o"
@@ -154,7 +154,7 @@ tests = ["test_xrouter_broadcasts_nodes_to_bpq3"]
 
 [[issue]]
 id = "peer-own-node-tt0"
-issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_4"
+issue = "https://github.com/packethacking/xrouter-container/issues/5"
 title = "The second XRouter sends its own node with trip time 0 (finding 3)"
 applies_to = "peer"
 finding = 3
@@ -163,7 +163,7 @@ tests = ["test_xrpeer_rif_fields_in_spec_range"]
 
 [[issue]]
 id = "peer-no-scheduled-rif"
-issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_3"
+issue = "https://github.com/packethacking/xrouter-container/issues/4"
 title = "The second XRouter ignores INPBCINTERVAL and re-sends its routes only every 10 minutes (finding 2)"
 applies_to = "peer"
 finding = 2
@@ -172,7 +172,7 @@ tests = ["test_xrpeer_refreshes_rif_on_schedule"]
 
 [[issue]]
 id = "peer-late-initial-rif"
-issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_7"
+issue = "https://github.com/packethacking/xrouter-container/issues/8"
 fixed_in = "505o"
 title = "The second XRouter sends no RIF for minutes after its link comes back (finding 1)"
 applies_to = "peer"
