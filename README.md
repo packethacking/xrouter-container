@@ -115,8 +115,8 @@ upstream); the manifest tracks them separately.
 | `:latest-amd64`                  | The newest published x86-64 build                     |
 | `:latest-arm64`                  | The newest published aarch64 build                    |
 | `:latest-armv7`                  | The newest published 32-bit ARM build                 |
-| `:<version>` e.g. `:505c`        | Multi-arch manifest list of every arch built for that version |
-| `:<version>-<arch>` e.g. `:505c-arm64` | A specific (version, arch) build                |
+| `:<version>` e.g. `:505o`        | Multi-arch manifest list of every arch built for that version |
+| `:<version>-<arch>` e.g. `:505o-arm64` | A specific (version, arch) build                |
 
 XRouter's release scheme is a numeric prefix plus a letter suffix (`504v`,
 `504z`, `505a`, `505b`, …). Letters increment until the prefix rolls. Because
@@ -220,7 +220,7 @@ For multi-version test fixtures, parameterise on the tag:
 ```python
 import pytest
 
-@pytest.fixture(params=["504v", "505a", "505c"])
+@pytest.fixture(params=["504v", "505c", "505o"])
 def xrouter_image(request):
     return f"ghcr.io/packethacking/xrouter:{request.param}"
 ```
@@ -242,7 +242,7 @@ def xrouter_image(request):
 3. Add a block to [`versions.json`](versions.json) with the sha256 of each
    binary, and bump `latest_<arch>` (and `latest`) to `<NEW>` for each arch
    that ships in this release.
-4. Push. The workflow rebuilds, re-verifies all 28 (version, arch) cells,
+4. Push. The workflow rebuilds, re-verifies all 31 (version, arch) cells,
    reassembles the per-version multi-arch lists, and updates the latest
    pointers.
 
@@ -254,8 +254,8 @@ pointers stay where they are unless you explicitly bump them.
 
 ```sh
 bash scripts/build.sh                  # latest version, all arches, --load
-bash scripts/build.sh 505c             # specific version, all arches
-bash scripts/build.sh 505c amd64       # one arch only
+bash scripts/build.sh 505o             # specific version, all arches
+bash scripts/build.sh 505o amd64       # one arch only
 ```
 
 Multi-arch builds need QEMU registered for binfmt; Docker Desktop does this
