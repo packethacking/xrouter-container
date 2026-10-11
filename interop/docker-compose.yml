@@ -1,0 +1,90 @@
+# XRouter <-> LinBPQ NET/ROM + INP3 interop stack.
+#
+# Every node's AXUDP peer is the relay, which forwards datagrams unchanged
+# and logs each one decoded (see relay/axudp_relay.py). To add a node, add a
+# service with a fixed address below, give it a config, and add a link for
+# it in relay/links.json.
+#
+#   172.28.77.10  relay     AXUDP relay + wire log, control on :8080
+#   172.28.77.11  xrouter   PN0XR  / XRNODE (and app PN0XR-1 / XRAPP)
+#   172.28.77.12  linbpq    PN0BQ  / BPQNOD (and app PN0BQ-1 / BQAPP)
+#   172.28.77.13  linbpq2   PN0BQB / BPQB   (only linked to linbpq)
+#
+# XROUTER_TAG picks the XRouter image tag (default latest), LINBPQ_TAG the LinBPQ one.
+
+name: xri
+
+services:
+  relay:
+    image: python:3.12-slim
+    container_name: xri-relay
+    user: "${XRI_UID:-1000}:${XRI_GID:-1000}"
+    command:
+      - python3
+      - -u
+      - /relay/axudp_relay.py
+      - --config=/relay/links.json
+      - --log=/out/relay.jsonl
+      - --text-log=/out/relay.txt
+    volumes:
+      - ./relay:/relay:ro
+      - ${XRI_OUT:-./out}:/out
+    ports:
+      - "127.0.0.1:${XRI_RELAY_PORT:-17080}:8080"
+    networks:
+      xri:
+        ipv4_address: 172.28.77.10
+
+  xrouter:
+    image: ghcr.io/packethacking/xrouter:${XROUTER_TAG:-latest}
+    container_name: xri-xrouter
+    depends_on: [relay]
+    cap_add: [NET_RAW]
+    volumes:
+      - xrouter-data:/data
+      - ./config/xrouter/XROUTER.CFG:/data/XROUTER.CFG:ro
+      - ./config/xrouter/ACCESS.SYS:/data/ACCESS.SYS:ro
+    ports:
+      - "127.0.0.1:${XRI_XR_TELNET:-17023}:23"
+    networks:
+      xri:
+        ipv4_address: 172.28.77.11
+
+  linbpq:
+    image: m0lte/linbpq:${LINBPQ_TAG:-latest}
+    container_name: xri-linbpq
+    depends_on: [relay]
+    volumes:
+      - linbpq-data:/data
+      - ./config/linbpq/bpq32.cfg:/data/bpq32.cfg:ro
+    ports:
+      - "127.0.0.1:${XRI_BPQ_TELNET:-17010}:8010"
+    networks:
+      xri:
+        ipv4_address: 172.28.77.12
+
+  linbpq2:
+    image: m0lte/linbpq:${LINBPQ_TAG:-latest}
+    container_name: xri-linbpq2
+    depends_on: [relay]
+    volumes:
+      - linbpq2-data:/data
+      - ./config/linbpq2/bpq32.cfg:/data/bpq32.cfg:ro
+    ports:
+      - "127.0.0.1:${XRI_BPQ2_TELNET:-17011}:8010"
+    networks:
+      xri:
+        ipv4_address: 172.28.77.13
+
+networks:
+  xri:
+    name: xri-net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.77.0/24
+
+volumes:
+  xrouter-data:
+  linbpq-data:
+  linbpq2-data:

@@ -1,0 +1,95 @@
+name: inp3-interop
+
+# XRouter <-> LinBPQ NET/ROM + INP3 interoperability suite (interop/).
+# Runs against the newest XRouter and the few versions before it, so a change
+# in behaviour between releases shows up as a column of different results.
+
+on:
+  workflow_dispatch:
+    inputs:
+      xrouter_tag:
+        description: "XRouter tag to test (e.g. 505o). Empty runs the usual set of recent versions."
+        required: false
+        default: ""
+  workflow_run:
+    workflows: [build-and-publish]
+    types: [completed]
+
+jobs:
+
+  plan:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.set.outputs.tags }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set
+        env:
+          INPUT_TAG: ${{ github.event.inputs.xrouter_tag }}
+        run: |
+          set -euo pipefail
+          if [ -n "${INPUT_TAG:-}" ]; then
+            tags=$(jq -cn --arg t "$INPUT_TAG" '[$t]')
+          else
+            # The latest amd64 build plus the last four versions in versions.json.
+            tags=$(jq -c '[.latest_amd64] + ([.versions | to_entries[] | select(.value.amd64) | .key] | .[-4:]) | unique' versions.json)
+          fi
+          echo "tags=$tags" >> "$GITHUB_OUTPUT"
+          echo "Testing XRouter tags: $tags"
+
+  interop:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        tag: ${{ fromJson(needs.plan.outputs.tags) }}
+    name: xrouter ${{ matrix.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: install pytest
+        run: pip install -r interop/requirements.txt
+      - name: pull images
+        run: |
+          docker pull ghcr.io/packethacking/xrouter:${{ matrix.tag }}-amd64
+          docker tag ghcr.io/packethacking/xrouter:${{ matrix.tag }}-amd64 ghcr.io/packethacking/xrouter:${{ matrix.tag }}
+          docker pull m0lte/linbpq:latest
+          docker pull python:3.12-slim
+      - name: run suite
+        env:
+          XROUTER_TAG: ${{ matrix.tag }}
+          XRI_OUT: ${{ github.workspace }}/interop/out/${{ matrix.tag }}
+        run: |
+          mkdir -p "$XRI_OUT"
+          python -m pytest interop/tests -v -p no:cacheprovider --junitxml="$XRI_OUT/junit.xml"
+      - name: summary
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import os, xml.etree.ElementTree as ET
+          tag = "${{ matrix.tag }}"
+          p = f"interop/out/{tag}/junit.xml"
+          print(f"### XRouter {tag}\n")
+          if not os.path.exists(p):
+              print("no results (the stack did not start?)")
+              raise SystemExit
+          print("| test | result |\n|---|---|")
+          for tc in ET.parse(p).getroot().iter("testcase"):
+              res = "pass"
+              for k in ("failure", "error", "skipped"):
+                  if tc.find(k) is not None:
+                      res = {"failure": "FAIL", "error": "ERROR", "skipped": "skip"}[k]
+              print(f"| {tc.get('classname').split('.')[-1]}::{tc.get('name')} | {res} |")
+          PY
+      - name: upload relay log and node logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: inp3-interop-${{ matrix.tag }}
+          path: interop/out/${{ matrix.tag }}
+          if-no-files-found: warn
