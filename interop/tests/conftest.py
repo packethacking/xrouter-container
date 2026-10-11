@@ -105,6 +105,9 @@ def stack():
         if os.path.exists(p):
             os.remove(p)
     compose("down", "-v", "--remove-orphans", check=False)
+    # Belt and braces: a stack from an interrupted run can leave containers
+    # with our fixed names behind, which makes `up` fail with a name clash.
+    subprocess.run(["docker", "rm", "-f", *[f"xri-{s}" for s in SERVICES]], capture_output=True)
     up = compose("up", "-d", check=False)
     if up.returncode != 0:
         pytest.exit(f"docker compose up failed:\n{up.stdout}\n{up.stderr}", returncode=3)
