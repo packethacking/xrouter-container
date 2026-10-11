@@ -15,6 +15,14 @@
 # `finding` points at the matching section of FINDINGS.md; `reported` says
 # when and where it went to the author, if it has.
 #
+# `issue` is the GitHub issue for it in this repo. Every entry about XRouter
+# (no `applies_to`, or "peer", the second XRouter) must have one; the suite
+# refuses to run without it. Entries for the other implementations have none:
+# those bugs are not XRouter's and live in FINDINGS.md only. Several entries
+# can share one issue. `fixed_in` is the first XRouter version with the fix;
+# set it exactly when the issue is closed (interop/check_issue_links.py
+# checks this against GitHub in CI).
+#
 # `applies_to` says whose bug it is when it is not the XRouter under test:
 # "peer" is the second XRouter (from/until are then matched against its
 # version, XROUTER_PEER_TAG), and "xnet", "tnn", "thenet" or "linbpq" are
@@ -24,6 +32,7 @@
 
 [[issue]]
 id = "no-scheduled-rif"
+issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_3"
 title = "XRouter ignores INPBCINTERVAL: it re-sends its routes only every 10 minutes"
 finding = 2
 until = "505o"
@@ -32,6 +41,7 @@ tests = ["test_xrouter_refreshes_rif_on_schedule", "test_xrouter_refreshes_rif_t
 
 [[issue]]
 id = "own-node-tt0"
+issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_4"
 title = "XRouter sends its own node with trip time 0 (INP3 range is 1 to 60000)"
 finding = 3
 until = "505o"
@@ -40,6 +50,8 @@ tests = ["test_xrouter_rif_fields_in_spec_range", "test_xrouter_rif_to_xnet_fiel
 
 [[issue]]
 id = "late-initial-rif"
+issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_7"
+fixed_in = "505o"
 title = "XRouter holds RIFs back for minutes, after the link comes up and after changes"
 finding = 1
 until = "505c"
@@ -73,6 +85,8 @@ tests = [
 
 [[issue]]
 id = "stale-routes-on-link-loss"
+issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_8"
+fixed_in = "505o"
 title = "On link loss XRouter re-advertises the lost routes as reachable"
 finding = 4
 until = "505c"
@@ -90,6 +104,8 @@ tests = [
 
 [[issue]]
 id = "rhp-bind-reply-malformed"
+finding = 12
+issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_1"
 title = "RHP bind reply is not valid JSON (type bind, errText label missing)"
 from = "505o"
 until = "505o"
@@ -98,6 +114,8 @@ tests = ["test_rhp_bind_reply_is_valid_json"]
 
 [[issue]]
 id = "rhp-listener-reply-no-handle"
+finding = 13
+issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_2"
 title = "RHP send and sendto on a listening socket reply without the handle"
 from = "505o"
 until = "505o"
@@ -106,6 +124,7 @@ tests = ["test_rhp_send_on_listener_reply_carries_handle", "test_rhp_sendto_on_l
 
 [[issue]]
 id = "first-rip-without-alias"
+issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_6"
 title = "XRouter's first positive RIP for a node often carries no alias"
 finding = 7
 until = "505o"
@@ -125,6 +144,7 @@ tests = [
 
 [[issue]]
 id = "nodes-first-port-only"
+issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_5"
 title = "XRouter sends its scheduled NODES broadcasts only on its first port"
 finding = 6
 until = "505o"
@@ -134,6 +154,7 @@ tests = ["test_xrouter_broadcasts_nodes_to_bpq3"]
 
 [[issue]]
 id = "peer-own-node-tt0"
+issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_4"
 title = "The second XRouter sends its own node with trip time 0 (finding 3)"
 applies_to = "peer"
 finding = 3
@@ -142,7 +163,8 @@ tests = ["test_xrpeer_rif_fields_in_spec_range"]
 
 [[issue]]
 id = "peer-no-scheduled-rif"
-title = "The second XRouter never re-sends its routes on schedule (finding 2)"
+issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_3"
+title = "The second XRouter ignores INPBCINTERVAL and re-sends its routes only every 10 minutes (finding 2)"
 applies_to = "peer"
 finding = 2
 until = "505o"
@@ -150,6 +172,8 @@ tests = ["test_xrpeer_refreshes_rif_on_schedule"]
 
 [[issue]]
 id = "peer-late-initial-rif"
+issue = "https://github.com/packethacking/xrouter-container/issues/ISSUE_7"
+fixed_in = "505o"
 title = "The second XRouter sends no RIF for minutes after its link comes back (finding 1)"
 applies_to = "peer"
 finding = 1

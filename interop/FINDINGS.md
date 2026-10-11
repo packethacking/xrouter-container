@@ -14,6 +14,8 @@ Summary, XRouter's own behaviour:
 | 4. On link loss XRouter re-advertises lost routes, or never withdraws them | fails | fails | passes |
 | 6. XRouter sends scheduled NODES broadcasts only on its first port | fails | fails | fails |
 | 7. XRouter's first positive RIP for a node often has no alias | some runs | some runs | some runs |
+| 12. RHP bind reply is not valid JSON | passes | passes | fails |
+| 13. RHP send and sendto on a listening socket reply without the handle | passes | passes | fails |
 
 The other implementations (not XRouter's to fix):
 
@@ -35,7 +37,9 @@ Wire evidence can be affected by the test machine itself: when the host stalls f
 
 ---
 
-## 1. 505a and 505c send LinBPQ no RIF for minutes after the link comes up (fixed in 505o)
+## 1. 505a and 505c hold RIFs back for minutes after the link comes up (fixed in 505o)
+
+Issue: https://github.com/packethacking/xrouter-container/issues/ISSUE_7
 
 **Versions:** 505a, 505c fail. 505o passes.
 
@@ -66,6 +70,8 @@ XRouter does learn LinBPQ's routes from LinBPQ's RIFs, so until then INP3 works 
 **With the other peers (505a, 505c):** the same holding back hits changes, not just the first RIF. In one 505c run XRouter sent LinBPQ a burst of RIFs in the first minute and a half, then nothing for eight and a half minutes until the 10 minute full update (finding 2), and between that and the next one nothing either, although LinBPQ2's and LinBPQ's own links were dropped and restored in that time. RIF send times to LinBPQ, seconds after start (run starting 1791728487.434): 25, 25, 35, 45, 65, 85, 609, 609, 1213, 1213, then 1342 and 1411 for TheNet. LinBPQ3 got its first RIF at 403 s. So in 505a and 505c XNet, TNN and the second XRouter heard of LinBPQ2 coming back after its link was restored, and LinBPQ heard of XNet and TNN coming back after theirs, only at the next full update; `test_xrouter_forwards_recovered_third_party_to_bpq3`, the `..._relearns_bpq_side_after_link_restored` and `..._recovers_when_link_restored` tests fail for that reason. 505o sends the changes within seconds.
 
 ## 2. XRouter ignores INPBCINTERVAL: it re-sends its routes only every 10 minutes
+
+Issue: https://github.com/packethacking/xrouter-container/issues/ISSUE_3
 
 **Versions:** 505a, 505c and 505o fail.
 
@@ -106,6 +112,8 @@ Early in a run `N BC T` shows `Last Full Update: ---` and `Next Full Update: ---
 
 ## 3. XRouter sends its own node with trip time 0
 
+Issue: https://github.com/packethacking/xrouter-container/issues/ISSUE_4
+
 **Versions:** 505a, 505c and 505o fail, towards every INP3 neighbour (LinBPQ, XNet, TNN, another XRouter). XNet 1.38 does the same (finding 9).
 
 **Expected:** [INP3] figure 1 gives the RIP transport time as `1 .. 60000`. [INP3] also says "For the own node ... the target time is ignored by the receiver", so this is low severity, but 0 is outside the stated range and XRouter is not consistent with itself: its application in the same RIF gets 1. LinBPQ sends its own node with 1. A comment in LinBPQ's `SendOurRIF` ("For no logical reason XR sends our routes at 10mS") suggests earlier XRouters sent 1 here too.
@@ -125,6 +133,8 @@ a09c6084a240e0a09c60b0a44061a6cfffa09c60b0a44000010000080058524e4f44450a100004b6
 LinBPQ copes: it adds its own link time on receipt, and relays XRouter on to LinBPQ2 as `XRNODE:PN0XR h2 tt1` or `tt2`. The visible effect is that XRouter's node looks 10 ms closer than its own application everywhere downstream. A receiver that applies the spec's range literally could reject or mishandle the entry.
 
 ## 4. 505a and 505c: on link loss, XRouter re-advertises the lost routes, or never withdraws them
+
+Issue: https://github.com/packethacking/xrouter-container/issues/ISSUE_8
 
 **Versions:** 505a and 505c fail. 505o passes.
 
@@ -166,6 +176,8 @@ It looks like a race between `SendRIFToNewNeighbour` and the regular send path a
 
 ## 6. XRouter sends its scheduled NODES broadcasts only on its first port
 
+Issue: https://github.com/packethacking/xrouter-container/issues/ISSUE_5
+
 **Versions:** 505a, 505c and 505o fail in the suite; 504z too in a bench run (below). Every version we tried.
 
 **Expected:** MAN NODESINT(7): NODESINTERVAL "is both a global and PORT directive ... If used in the "global" section of XROUTER.CFG, it sets the global NODESINTERVAL, the default for all PORTs". The suite sets `NODESINTERVAL=1`, so every port should get a NODES broadcast every minute.
@@ -184,6 +196,8 @@ The only NODES XRouter sends on the other ports unprompted is the `NODES_POLL` a
 **Effect:** a neighbour on any other port never hears XRouter's NODES. LinBPQ3 still learns XRouter by INP3. XNet does not even open the link to a neighbour it has not heard in NODES, and TheNet can only ever learn routes from NODES, so without the work-around neither of them would talk to XRouter at all on ports 3 and 5.
 
 ## 7. XRouter's first positive RIP for a node often carries no alias
+
+Issue: https://github.com/packethacking/xrouter-container/issues/ISSUE_6
 
 **Versions:** 505a, 505c and 505o, in some runs and not others (each version failed at least one of these checks in at least one of our runs). A non-strict known issue, because it depends on timing.
 
@@ -204,6 +218,36 @@ TheNet (PN0TH), which XRouter turns into an INP3 route (see Observations), never
 ```
 
 **Effect:** XNet lists such nodes as `#tmp:PN0BQB`, `#tmp:PN0BQ-1` and so on, and `C BPQB` from XNet fails with `Node 'BPQB' unknown` until the next full update or a NODES broadcast fixes it (505c: `test_xnet_knows_aliases_of_relayed_nodes`). LinBPQ and TNN take aliases from NODES as well, which hides it for them while NODES are flowing.
+
+## 12. 505o: the RHP bind reply is not valid JSON
+
+Issue: https://github.com/packethacking/xrouter-container/issues/ISSUE_1
+
+**Versions:** 505o fails. 505a and 505c pass. Reported on the xrouter group on 2026-10-11; the author confirmed it and has fixed it for a later build.
+
+**Expected:** every RHP reply is a JSON object, and a bind is answered with a `bindReply` carrying `errCode`, `errText` and the socket handle, as 505c does.
+
+**What happens (505o):** the type is `bind` instead of `bindReply`, and `Ok` appears without its `"errText":` label, so a JSON parser rejects the whole reply. An RHP application has to bind before it can listen, so this stops RHP server applications working on 505o.
+
+```
+> {"type":"bind","id":3,"handle":1,"local":"PN9TST-1"}
+505c < {"type": "bindReply", "id": 3, "handle": 1, "errCode": 0, "errText": "Ok"}
+505o < {"type": "bind", "id": 3, "handle": 1, "errCode": 0, Ok}
+```
+
+## 13. 505o: RHP send and sendto on a listening socket reply without the handle
+
+Issue: https://github.com/packethacking/xrouter-container/issues/ISSUE_2
+
+**Versions:** 505o fails. 505a and 505c pass. Reported on the xrouter group on 2026-10-11; the author confirmed it for send, found the same in sendto, and has fixed both for a later build.
+
+**Expected:** the reply carries the socket handle it is about, so a client can match it to its socket. The error code itself changed on purpose in 505d (16, "Operation not supported", instead of 17, "Not connected"), and so did LISTEN on a socket that is already listening; the tests do not pin either.
+
+```
+> {"type":"send","id":6,"handle":1,"data":"x"}
+505c < {"type": "sendReply", "id": 6, "handle": 1, "errCode": 17, "errText": "Not connected"}
+505o < {"type": "sendReply", "id": 6, "errCode": 16, "errText": "Operation not supported"}
+```
 
 ---
 

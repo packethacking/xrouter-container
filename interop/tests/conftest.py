@@ -33,6 +33,9 @@ from consoles import BpqConsole, TheNetConsole, TnnConsole, XNetConsole, XRouter
 from wire import Wire, wait_for  # noqa: E402
 from xrversions import version_key as _version_key, xrouter_peer_version, xrouter_version  # noqa: E402
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from check_issue_links import structure_errors  # noqa: E402
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 INTEROP = os.path.dirname(HERE)
 OUT = os.path.abspath(os.environ.get("XRI_OUT", os.path.join(INTEROP, "out")))
@@ -144,13 +147,19 @@ def pytest_collection_modifyitems(config, items):
     missing = sorted(all_known_issue_tests() - names)
     if missing:
         raise pytest.UsageError(f"known-issues.toml names tests that do not exist: {', '.join(missing)}")
+    # Every XRouter known issue links its GitHub issue, and only those do.
+    with open(os.path.join(INTEROP, "known-issues.toml"), "rb") as f:
+        problems = structure_errors(tomllib.load(f)["issue"], names)
+    if problems:
+        raise pytest.UsageError("known-issues.toml: " + "; ".join(problems))
     for item in items:
         issue = affected.get(item.originalname or item.name)
         if issue:
             who = {"peer": f"peer XRouter {peer_version}", "xnet": "XNet 1.38", "tnn": "TNN 1.79",
                    "thenet": "TheNet X1J", "linbpq": "LinBPQ"}.get(issue.get("applies_to", ""), f"XRouter {version}")
+            link = f" ({issue['issue']})" if "issue" in issue else ""
             item.add_marker(pytest.mark.xfail(
-                reason=f"known issue {issue['id']} in {who}: {issue['title']}",
+                reason=f"known issue {issue['id']} in {who}: {issue['title']}{link}",
                 strict=issue.get("strict", True)))
 
 

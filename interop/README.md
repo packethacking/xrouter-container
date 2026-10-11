@@ -73,6 +73,10 @@ In GitHub Actions the `inp3-interop` workflow runs the suite after every image p
 
 `known-issues.toml` lists bugs we already know about, which tests they break, and which versions they affect. Most are XRouter's; `applies_to = "peer"` marks a bug in the second XRouter (matched against its version), and `applies_to = "xnet"`, `"tnn"` or `"thenet"` a bug in that implementation, which applies to every XRouter version since those are pinned. In those versions the tests show as expected failures (XFAIL) and the run stays green. In any later version they are expected to pass, so a new release that has not fixed a bug goes red until someone reports it again or moves the issue's `until` forward. If a listed test passes in a version marked as affected, the run also goes red: the bug may be fixed, so check and update the file.
 
+### Known issues and GitHub issues
+
+XRouter is closed source with no public tracker, so each XRouter bug the suite tracks has an issue in this repo, and its entry in `known-issues.toml` links it with `issue = "<url>"` (several entries can share one). The suite will not start if an XRouter entry has no link, and the link appears in each expected failure and in the CI summary. Bugs in the other implementations stay in `FINDINGS.md` and have no issue. When the author fixes a bug, close its issue and add `fixed_in = "<first fixed version>"` to its entries; `python3 interop/check_issue_links.py` (run at the start of every CI run) fails if a closed issue's entries have no `fixed_in` or an open one's do, and `--offline` checks only the file itself.
+
 ## Reading the relay log
 
 `relay.txt` has one line per frame and is the quickest read:

@@ -110,7 +110,7 @@ For the interop summary, download each version's results and count them:
 ```sh
 gh run download <id> --repo packethacking/xrouter-container --dir /tmp/xrc-check-interop
 python3 - <<'PY'
-import glob, xml.etree.ElementTree as ET
+import glob, re, xml.etree.ElementTree as ET
 for p in sorted(glob.glob("/tmp/xrc-check-interop/inp3-interop-*/junit.xml")):
     tag = p.split("inp3-interop-")[1].split("/")[0]
     c = {"passed": 0, "known issues": 0, "regressions": 0, "possibly fixed": 0}
@@ -119,6 +119,8 @@ for p in sorted(glob.glob("/tmp/xrc-check-interop/inp3-interop-*/junit.xml")):
         skip = tc.find("skipped")
         if fail is not None and "XPASS(strict)" in (fail.get("message") or ""):
             c["possibly fixed"] += 1
+            m = re.search(r"https://github\.com/\S+/issues/\d+", fail.get("message") or "")
+            print(tag, "possibly fixed:", tc.get("name"), m.group(0) if m else "(no issue: not an XRouter bug)")
         elif fail is not None:
             c["regressions"] += 1
         elif skip is not None and skip.get("type") == "pytest.xfail":
@@ -128,6 +130,16 @@ for p in sorted(glob.glob("/tmp/xrc-check-interop/inp3-interop-*/junit.xml")):
     print(tag, c)
 PY
 ```
+
+### Possibly fixed known issues
+
+A test listed as "possibly fixed" passed in a version where `interop/known-issues.toml` says an XRouter bug should break it. Its failure message ends with the GitHub issue URL. For each such issue, once per version (check the issue's comments first with `gh issue view <n> --repo packethacking/xrouter-container --comments`), add a short comment:
+
+```sh
+gh issue comment <n> --repo packethacking/xrouter-container --body "XRouter <version>: the interop suite's checks for this passed (<run url>), so it may be fixed in this version. Leaving the issue open until a person has looked."
+```
+
+Issues are public and the XRouter author may read them, so the Rules above apply: no mention of BPQ, and if a passing test's name contains `bpq`, leave the test names out of the comment. Do not close the issue, do not change `known-issues.toml`, and do not touch issue labels; say in the report which issues you commented on. A possibly fixed test whose known issue is not XRouter's (no issue URL) is only mentioned in the report.
 
 ## 7. Nothing changed
 
@@ -145,7 +157,7 @@ Finish with a few plain sentences for Tom, no tables or jargon. Say:
 
 - whether anything was new or replaced upstream, naming versions and arches;
 - for a replacement, that `:<ver>-<arch>` now points at the new binary and the old one stays available as `:<ver>-<arch>-<old sha8>`;
-- whether the images built and published, and for each version the interop suite ran on, how many tests passed, how many were known issues, and any regressions or possibly fixed tests by name;
+- whether the images built and published, and for each version the interop suite ran on, how many tests passed, how many were known issues, and any regressions or possibly fixed tests by name, with the GitHub issue each possibly fixed test belongs to and whether you commented on it;
 - anything that disappeared upstream, any long-deferred dynamic-only build, any skipped local boot test;
 - on failure, what failed, the error, and that nothing was pushed.
 

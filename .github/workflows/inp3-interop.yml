@@ -18,6 +18,10 @@ on:
     workflows: [build-and-publish]
     types: [completed]
 
+permissions:
+  contents: read
+  issues: read   # check_issue_links.py reads the linked issues
+
 jobs:
 
   plan:
@@ -27,6 +31,10 @@ jobs:
       tags: ${{ steps.set.outputs.tags }}
     steps:
       - uses: actions/checkout@v4
+      - name: check known issues against GitHub issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 interop/check_issue_links.py
       - id: set
         env:
           INPUT_TAG: ${{ github.event.inputs.xrouter_tag }}
@@ -80,7 +88,12 @@ jobs:
         if: always()
         run: |
           python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
-          import os, xml.etree.ElementTree as ET
+          import os, re, xml.etree.ElementTree as ET
+          issue_url = re.compile(r"https://github\.com/packethacking/xrouter-container/issues/\w+")
+          def linked(text):
+              # Show the known issue's GitHub issue, which the xfail reason carries, as a link.
+              m = issue_url.search(text or "")
+              return f" ([issue #{m.group(0).rsplit('/', 1)[1]}]({m.group(0)}))" if m else ""
           tag = "${{ matrix.tag }}"
           p = f"interop/out/{tag}/junit.xml"
           print(f"### XRouter {tag} (second XRouter ${{ env.XROUTER_PEER_TAG }})\n")
@@ -94,11 +107,12 @@ jobs:
               fail = tc.find("failure") if tc.find("failure") is not None else tc.find("error")
               skip = tc.find("skipped")
               if fail is not None and "XPASS(strict)" in (fail.get("message") or ""):
-                  groups["Possibly fixed (passed although listed as a known issue)"].append(name)
+                  groups["Possibly fixed (passed although listed as a known issue)"].append(name + linked(fail.get("message")))
               elif fail is not None:
                   groups["Regressions (unexpected failures)"].append(name)
               elif skip is not None and skip.get("type") == "pytest.xfail":
-                  groups["Known issues (expected failures)"].append(f"{name}: {skip.get('message', '')}")
+                  msg = issue_url.sub("", skip.get("message", "")).replace(" ()", "")
+                  groups["Known issues (expected failures)"].append(f"{name}: {msg}{linked(skip.get('message'))}")
               elif skip is not None:
                   groups["Passed"].append(f"{name} (skipped)")
               else:
