@@ -60,3 +60,19 @@ finding = 4
 until = "505c"
 strict = false
 tests = ["test_xrouter_tells_bpq3_that_bpq_side_is_gone"]
+
+[[issue]]
+id = "rhp-bind-reply-malformed"
+title = "RHP bind reply is not valid JSON (type bind, errText label missing)"
+from = "505o"
+until = "505o"
+reported = "2026-10-11, xrouter group; author confirmed and fixed for a later build"
+tests = ["test_rhp_bind_reply_is_valid_json"]
+
+[[issue]]
+id = "rhp-listener-reply-no-handle"
+title = "RHP send and sendto on a listening socket reply without the handle"
+from = "505o"
+until = "505o"
+reported = "2026-10-11, xrouter group; author confirmed and fixed for a later build"
+tests = ["test_rhp_send_on_listener_reply_carries_handle", "test_rhp_sendto_on_listener_reply_carries_handle"]

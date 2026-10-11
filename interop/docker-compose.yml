@@ -47,6 +47,7 @@ services:
       - ./config/xrouter/ACCESS.SYS:/data/ACCESS.SYS:ro
     ports:
       - "127.0.0.1:${XRI_XR_TELNET:-17023}:23"
+      - "127.0.0.1:${XRI_XR_RHP:-17090}:9000"
     networks:
       xri:
         ipv4_address: 172.28.77.11

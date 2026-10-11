@@ -21,8 +21,9 @@ Every AXUDP link goes through a small Python relay (`relay/axudp_relay.py`). It 
 - `test_04_l4`: NET/ROM circuits from XRouter to LinBPQ, LinBPQ to XRouter, and two hops each way via LinBPQ, with data passing.
 - `test_04b_refresh`: both sides re-send their routes on the schedule they are configured for (XRouter `INPBCINTERVAL`, LinBPQ `RIFINTERVAL`).
 - `test_05_withdrawal`: drop the LinBPQ2 link and check LinBPQ sends negative information, XRouter stops time-routing to it and passes the news on to LinBPQ3 within 10 seconds, then bring it back; drop the XRouter link and check both sides withdraw, LinBPQ tells LinBPQ2, XRouter tells LinBPQ3, and everything recovers when the link returns.
+- `test_06_rhp`: XRouter's RHP API answers bind, and send or sendto on a listening socket, with valid JSON that carries the socket handle.
 
-Tests that fail are left failing. `FINDINGS.md` explains each failure we believe is a real interop problem rather than a harness fault, with the wire evidence.
+Known XRouter bugs are expected failures in the versions they affect (see Known issues below). `FINDINGS.md` explains each failure we believe is a real interop problem rather than a harness fault, with the wire evidence.
 
 ## Running it
 
