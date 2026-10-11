@@ -120,6 +120,7 @@ tests = [
   "test_xrouter_passes_xrpeer_alias_to_bpq3",
   "test_xrouter_passes_thenet_alias_to_bpq3",
   "test_xnet_knows_aliases_of_relayed_nodes",
+  "test_tnn_knows_aliases_of_relayed_nodes",
 ]
 
 [[issue]]
