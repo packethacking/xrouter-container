@@ -9,10 +9,13 @@ Environment:
 
 from __future__ import annotations
 
+import json
 import os
+import re
 import subprocess
 import sys
 import time
+import tomllib
 import urllib.request
 
 import pytest
@@ -44,6 +47,53 @@ LINK2 = "bpq-bpq2"       # relay link between LinBPQ and LinBPQ2
 LINK3 = "xr-bpq3"        # relay link between XRouter and LinBPQ3
 
 SERVICES = ["relay", "xrouter", "linbpq", "linbpq2", "linbpq3"]
+
+
+def xrouter_version() -> str:
+    """The XRouter version under test, e.g. "505o". "latest" (the default) is
+    resolved through the repo's versions.json."""
+    tag = os.environ.get("XROUTER_TAG", "latest")
+    if tag == "latest":
+        with open(os.path.join(os.path.dirname(INTEROP), "versions.json")) as f:
+            tag = json.load(f)["latest"]
+    return tag
+
+
+def _version_key(v: str) -> tuple[int, str]:
+    # XRouter versions are a number then a letter: 504z, 505a, 505o.
+    m = re.fullmatch(r"(\d+)([a-z]*)", v)
+    if not m:
+        raise ValueError(f"not an XRouter version: {v!r}")
+    return int(m.group(1)), m.group(2)
+
+
+def known_issues(version: str) -> dict[str, dict]:
+    """Map test name -> the known issue that affects it in this version."""
+    with open(os.path.join(INTEROP, "known-issues.toml"), "rb") as f:
+        issues = tomllib.load(f)["issue"]
+    v = _version_key(version)
+    affected = {}
+    for issue in issues:
+        lo = _version_key(issue["from"]) if "from" in issue else None
+        if (lo is None or v >= lo) and v <= _version_key(issue["until"]):
+            for test in issue["tests"]:
+                affected[test] = issue
+    return affected
+
+
+def pytest_collection_modifyitems(config, items):
+    version = xrouter_version()
+    affected = known_issues(version)
+    names = {item.originalname or item.name for item in items}
+    missing = sorted(set(affected) - names)
+    if missing:
+        raise pytest.UsageError(f"known-issues.toml names tests that do not exist: {', '.join(missing)}")
+    for item in items:
+        issue = affected.get(item.originalname or item.name)
+        if issue:
+            item.add_marker(pytest.mark.xfail(
+                reason=f"known issue {issue['id']} in XRouter {version}: {issue['title']}",
+                strict=issue.get("strict", True)))
 
 
 def compose(*args: str, check: bool = True) -> subprocess.CompletedProcess:

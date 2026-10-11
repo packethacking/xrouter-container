@@ -25,6 +25,6 @@ rc=0
 for tag in "${tags[@]}"; do
     echo "=== XRouter $tag ==="
     XROUTER_TAG="$tag" XRI_OUT="$here/out/$tag" \
-        "$py" -m pytest tests -v -p no:cacheprovider --junitxml="$here/out/$tag/junit.xml" "$@" || rc=1
+        "$py" -m pytest tests -v -rxX -p no:cacheprovider --junitxml="$here/out/$tag/junit.xml" "$@" || rc=1
 done
 exit $rc

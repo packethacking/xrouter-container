@@ -38,6 +38,10 @@ Results, the relay log and every node's logs land in `interop/out/<tag>/`. Set `
 
 In GitHub Actions the `inp3-interop` workflow runs the suite after every image publish, and on demand with an optional tag. Each version gets its own job, a pass/fail table in the run summary, and an artifact with the logs.
 
+## Known issues
+
+`known-issues.toml` lists XRouter bugs we already know about, which tests they break, and which versions they affect. In those versions the tests show as expected failures (XFAIL) and the run stays green. In any later version they are expected to pass, so a new release that has not fixed a bug goes red until someone reports it again or moves the issue's `until` forward. If a listed test passes in a version marked as affected, the run also goes red: the bug may be fixed, so check and update the file.
+
 ## Reading the relay log
 
 `relay.txt` has one line per frame and is the quickest read:

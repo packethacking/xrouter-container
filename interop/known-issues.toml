@@ -1,0 +1,72 @@
+# Known XRouter issues, by version.
+#
+# Each [[issue]] lists the tests it breaks and the XRouter versions it is
+# known to affect: `from` (optional, default: every earlier version) up to
+# and including `until`. In those versions a failure of those tests is an
+# expected fail and the run stays green. Every later version is expected to
+# pass, so a new XRouter release that has not fixed the issue goes red and
+# someone has to either report it again or move `until` forward.
+#
+# strict = true (the default) also turns the run red if a listed test passes
+# in an affected version: the issue may have been fixed, so check and update
+# this file. Use strict = false only for failures that depend on timing and
+# do not happen every run.
+#
+# `finding` points at the matching section of FINDINGS.md; `reported` says
+# when and where it went to the author, if it has.
+
+[[issue]]
+id = "no-scheduled-rif"
+title = "XRouter never re-sends its routes on schedule, despite INPBCINTERVAL"
+finding = 2
+until = "505o"
+tests = ["test_xrouter_refreshes_rif_on_schedule"]
+
+[[issue]]
+id = "own-node-tt0"
+title = "XRouter sends its own node with trip time 0 (INP3 range is 1 to 60000)"
+finding = 3
+until = "505o"
+tests = ["test_xrouter_rif_fields_in_spec_range"]
+
+[[issue]]
+id = "late-initial-rif"
+title = "XRouter sends no RIF for minutes after the link comes up"
+finding = 1
+until = "505c"
+# How long XRouter takes varies from run to run (six minutes in one 505c
+# run, none at all in seven minutes in another), so some of these can pass.
+strict = false
+tests = [
+  "test_xrouter_sends_rif",
+  "test_own_node_rip_has_hop_count_one",
+  "test_bpq_marks_xrouter_route_as_inp3",
+  "test_xrouter_nodes_reach_bpq2_through_bpq",
+  "test_bpq_learns_xrouter_application_by_inp3",
+  "test_xrouter_relays_bpq_routes_to_bpq3",
+  "test_xrouter_relays_bpq3_to_bpq",
+  "test_routes_recover_when_link_restored",
+  "test_xrouter_resends_own_rif_after_link_restored",
+  "test_bpq3_relearns_bpq_side_after_link_restored",
+]
+
+[[issue]]
+id = "late-initial-rif-505a"
+title = "XRouter sends no RIF for minutes after the link comes up (further knock-on failures in 505a)"
+finding = 1
+from = "505a"
+until = "505a"
+strict = false
+tests = [
+  "test_bpq3_learns_whole_network_through_xrouter",
+  "test_l4_connect_bpq3_to_bpq2_through_xrouter",
+  "test_xrouter_forwards_negative_info_to_bpq3",
+]
+
+[[issue]]
+id = "stale-routes-on-link-loss"
+title = "On link loss XRouter re-advertises the lost routes as reachable"
+finding = 4
+until = "505c"
+strict = false
+tests = ["test_xrouter_tells_bpq3_that_bpq_side_is_gone"]

@@ -66,7 +66,7 @@ jobs:
           XRI_OUT: ${{ github.workspace }}/interop/out/${{ matrix.tag }}
         run: |
           mkdir -p "$XRI_OUT"
-          python -m pytest interop/tests -v -p no:cacheprovider --junitxml="$XRI_OUT/junit.xml"
+          python -m pytest interop/tests -v -rxX -p no:cacheprovider --junitxml="$XRI_OUT/junit.xml"
       - name: summary
         if: always()
         run: |
@@ -78,13 +78,30 @@ jobs:
           if not os.path.exists(p):
               print("no results (the stack did not start?)")
               raise SystemExit
-          print("| test | result |\n|---|---|")
+          groups = {"Regressions (unexpected failures)": [], "Possibly fixed (passed although listed as a known issue)": [],
+                    "Known issues (expected failures)": [], "Passed": []}
           for tc in ET.parse(p).getroot().iter("testcase"):
-              res = "pass"
-              for k in ("failure", "error", "skipped"):
-                  if tc.find(k) is not None:
-                      res = {"failure": "FAIL", "error": "ERROR", "skipped": "skip"}[k]
-              print(f"| {tc.get('classname').split('.')[-1]}::{tc.get('name')} | {res} |")
+              name = tc.get("name")
+              fail = tc.find("failure") if tc.find("failure") is not None else tc.find("error")
+              skip = tc.find("skipped")
+              if fail is not None and "XPASS(strict)" in (fail.get("message") or ""):
+                  groups["Possibly fixed (passed although listed as a known issue)"].append(name)
+              elif fail is not None:
+                  groups["Regressions (unexpected failures)"].append(name)
+              elif skip is not None and skip.get("type") == "pytest.xfail":
+                  groups["Known issues (expected failures)"].append(f"{name}: {skip.get('message', '')}")
+              elif skip is not None:
+                  groups["Passed"].append(f"{name} (skipped)")
+              else:
+                  groups["Passed"].append(name)
+          for title, rows in groups.items():
+              if title == "Passed":
+                  print(f"**Passed:** {len(rows)}\n")
+                  continue
+              print(f"**{title}:** {len(rows)}\n")
+              for r in rows:
+                  print(f"- {r}")
+              print()
           PY
       - name: upload relay log and node logs
         if: always()
