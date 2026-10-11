@@ -82,6 +82,13 @@
         "sha256": "e0f3638b3cbdfb5499485fd0675ebec414dfae5f11a367e4483f8ae26e21790f"
       }
     },
+    "504x": {
+      "amd64": {
+        "url": "https://compute.oarc.uk/storage/public/folders/4851/xrouter-504x-amd64",
+        "sha256": "836b35552d5c02c6003a8a35aea3510142fa62927e653d567a71c2de6f80703d",
+        "packages": "libasound2 libx11-6"
+      }
+    },
     "504y": {
       "amd64": {
         "url": "https://compute.oarc.uk/storage/public/folders/4851/xrouter-504y-amd64",

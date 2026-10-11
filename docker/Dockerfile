@@ -66,6 +66,15 @@ RUN curl -fsSL -o /xrouter "$BIN_URL" \
 
 FROM debian:bookworm-slim AS runtime
 
+# Most XRouter builds are static and need nothing here. A few versions
+# were only released as dynamically linked binaries; their versions.json
+# entry lists the shared libraries they need (e.g. libasound2 libx11-6).
+ARG RUNTIME_PACKAGES=""
+RUN if [ -n "$RUNTIME_PACKAGES" ]; then \
+        apt-get update && apt-get install -y --no-install-recommends $RUNTIME_PACKAGES \
+        && rm -rf /var/lib/apt/lists/*; \
+    fi
+
 COPY --from=fetch /skel /opt/xrouter/skel
 COPY --from=fetch /xrouter /usr/local/bin/xrouter
 COPY docker/entrypoint.sh /usr/local/bin/xrouter-entrypoint.sh

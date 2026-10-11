@@ -50,7 +50,8 @@ jobs:
                     else null end
                   ),
                   url: .value.url,
-                  sha256: .value.sha256
+                  sha256: .value.sha256,
+                  packages: (.value.packages // "")
                 }
             ]
           ' versions.json)
@@ -104,6 +105,7 @@ jobs:
             BIN_URL=${{ matrix.url }}
             BIN_SHA256=${{ matrix.sha256 }}
             XROUTER_VERSION=${{ matrix.version }}
+            RUNTIME_PACKAGES=${{ matrix.packages }}
           cache-from: type=gha,scope=${{ matrix.arch }}
           cache-to: type=gha,scope=${{ matrix.arch }},mode=max
           provenance: false

@@ -69,6 +69,8 @@ docker run --rm --entrypoint /bin/sh ghcr.io/packethacking/xrouter:latest \
 
 Base layer: `debian:bookworm-slim`. The XRouter binary itself is statically
 linked, so the runtime image carries no shared-library surface to update.
+The exception is 504x, which upstream only released as a dynamically linked
+x86-64 build; its image also carries libasound2 and libx11-6.
 
 ## Support files
 
@@ -242,9 +244,11 @@ def xrouter_image(request):
 3. Add a block to [`versions.json`](versions.json) with the sha256 of each
    binary, and bump `latest_<arch>` (and `latest`) to `<NEW>` for each arch
    that ships in this release.
-4. Push. The workflow rebuilds, re-verifies all 31 (version, arch) cells,
+4. Push. The workflow rebuilds, re-verifies all 32 (version, arch) cells,
    reassembles the per-version multi-arch lists, and updates the latest
    pointers.
+
+A few versions were only released as dynamically linked binaries (504x exists only as `xrlin64v504x-vanessa`). For those, add a `"packages"` field to the arch entry listing the Debian packages the binary needs (`ldd` on `debian:bookworm-slim` tells you), for example `"packages": "libasound2 libx11-6"`; the image installs them.
 
 If only some arches got a build (it happens), omit the missing arch entries —
 the workflow only builds what's in the manifest, and the per-arch latest

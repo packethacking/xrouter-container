@@ -40,6 +40,8 @@ build_arch() {
     local bin_url bin_sha
     bin_url=$(mf "d['versions']['$VERSION'].get('$arch',{}).get('url','')")
     bin_sha=$(mf "d['versions']['$VERSION'].get('$arch',{}).get('sha256','')")
+    local pkgs
+    pkgs=$(mf "d['versions']['$VERSION'].get('$arch',{}).get('packages','')")
     if [ -z "$bin_url" ]; then
         echo "skip: $VERSION has no $arch build" >&2
         return 0
@@ -52,6 +54,7 @@ build_arch() {
         --build-arg BIN_URL="$bin_url" \
         --build-arg BIN_SHA256="$bin_sha" \
         --build-arg XROUTER_VERSION="$VERSION" \
+        --build-arg RUNTIME_PACKAGES="$pkgs" \
         -f docker/Dockerfile \
         -t "packethacking/xrouter:$VERSION-$arch" \
         --load \
