@@ -24,7 +24,7 @@ WORKDIR /work
 
 # Support tree: HELP/MAN/INFO/MISC + sample .SYS / .ACL / .CFG files.
 # The dummy XROUTER.CFG is renamed to .example so the entrypoint won't
-# auto-copy it into /data on first run — sysops should bring their own.
+# auto-copy it into /data on first run; sysops should bring their own.
 RUN curl -fsSL -o support.zip "$SUPPORT_URL" \
     && echo "$SUPPORT_SHA256  support.zip" | sha256sum -c - \
     && unzip -q support.zip -d unzipped \
@@ -33,8 +33,8 @@ RUN curl -fsSL -o support.zip "$SUPPORT_URL" \
 
 # Prepend a Docker-specific note to the example. The static-linked
 # binary cannot use the glibc system resolver (NSS modules are
-# dynamic), so any hostname lookup XRouter performs — IGATE,
-# DynDNS, AMPR routing, etc. — needs an explicit DNS= directive.
+# dynamic), so any hostname lookup XRouter performs (IGATE,
+# DynDNS, AMPR routing, etc.) needs an explicit DNS= directive.
 # The annotated MISC/XROUTER.CFG does document DNS= at line ~339,
 # but its comment mis-states that it's optional for Linux; on a
 # static build it is mandatory for any hostname resolution. We
@@ -58,7 +58,7 @@ RUN { \
     } > /skel/XROUTER.CFG.example.new \
     && mv /skel/XROUTER.CFG.example.new /skel/XROUTER.CFG.example
 
-# Per-arch ELF, fetched as a bare binary — no archive to unpack.
+# Per-arch ELF, fetched as a bare binary, no archive to unpack.
 RUN curl -fsSL -o /xrouter "$BIN_URL" \
     && echo "$BIN_SHA256  /xrouter" | sha256sum -c - \
     && chmod +x /xrouter
@@ -86,7 +86,7 @@ LABEL org.opencontainers.image.title="xrouter"
 LABEL org.opencontainers.image.description="XRouter packet radio node, packaged for Docker"
 LABEL org.opencontainers.image.version="$XROUTER_VERSION"
 
-# /data is the working directory at runtime — XROUTER.CFG lives here
+# /data is the working directory at runtime; XROUTER.CFG lives here
 # along with state files (XRNODES, LOG/, CHAT/, PMS/, etc.).
 VOLUME ["/data"]
 WORKDIR /data

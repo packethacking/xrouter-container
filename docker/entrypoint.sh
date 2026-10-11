@@ -9,7 +9,7 @@
 #
 # Output mode is controlled by XROUTER_TUI (default 0, headless):
 #
-#   XROUTER_TUI=0   (default) — xrouter runs in the background with
+#   XROUTER_TUI=0   (default): xrouter runs in the background with
 #                   stdout discarded; the entrypoint tails the
 #                   /data/LOG/*.TXT files to PID 1 stdout so
 #                   `docker logs` is a structured log stream and
@@ -48,7 +48,7 @@ for d in HELP MAN INFO MISC; do
     fi
 done
 
-# Sample config files: cp -n equivalent (only if missing — don't
+# Sample config files: cp -n equivalent (only if missing; don't
 # overwrite sysop edits). XROUTER.CFG.example lets sysops bootstrap
 # their own XROUTER.CFG.
 for f in ACCESS.SYS BOOTCMDS.SYS CRONTAB.SYS HTTP.ACL HTTP.SYS \
@@ -87,7 +87,7 @@ Mount a host directory containing your XROUTER.CFG as /data, e.g.:
         -p 23:23 -p 80:80 -p 2323:2323 \\
         <image>:latest
 
-A starter config ships at /opt/xrouter/skel/XROUTER.CFG.example — copy
+A starter config ships at /opt/xrouter/skel/XROUTER.CFG.example; copy
 it into your mounted dir and edit it for your callsign:
 
     cp /opt/xrouter/skel/XROUTER.CFG.example /data/XROUTER.CFG
@@ -95,7 +95,7 @@ EOF
     exit 1
 fi
 
-# TUI mode — preserve original behaviour for interactive sessions.
+# TUI mode: preserve original behaviour for interactive sessions.
 if [ "${XROUTER_TUI:-0}" = "1" ]; then
     exec /usr/local/bin/xrouter "$@"
 fi
