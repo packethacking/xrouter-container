@@ -1,0 +1,21 @@
+PN#DUT:DUT} NetRom Layer # Stats:
+ Known Nodes: #
+ Table Free Slots: #
+ Nodes Table Peak: #
+ Table Overflows: #
+ Brdcast Pkts Heard: #
+ Unicast Pkts Rcvd: #
+ Incoming Packets: #
+ Incoming Octets: #
+ Packets Received: #
+ Brdcast Pkts Sent: #
+ Unicast Pkts Sent: #
+ Packets Sent: #
+ Outgoing Packets: #
+ Outgoing Octets: #
+ Port: # # #
+ L# Frames Heard # # #
+ L# Frames Rcvd # # #
+ L# Frames Sent # # #
+ L# Frames Relayed # # #
+(End of list)

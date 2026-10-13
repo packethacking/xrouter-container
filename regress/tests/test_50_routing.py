@@ -39,9 +39,10 @@ def routes_to(dut, call: str) -> list[dict]:
     out = dut.cmd(f"N {call}", 1.5)
     rows = []
     for line in out.splitlines():
-        # "> 192  5   1 PN0TS        0.09  1   5   N <"
+        # "> 192  5   1 PN0TS        0.09  1   5   N <"; 505o adds a
+        # Last-Update column ("13/10 17:57").
         m = re.match(r"^\s*(>?)\s*(\d+)\s+(\d+)\s+(\d+)\s+([A-Z0-9]+(?:-\d+)?)\s+([\d.]+)\s+(\d+)"
-                     r"\s+(\d+)\s+([YN])?\s*(<)?\s*$", line)
+                     r"\s+(\d+)\s+([YN])?\s*(<)?(?:\s+\d+/\d+ \d+:\d+)?\s*$", line)
         if m:
             rows.append({"line": line, "active": m.group(1) == ">", "preferred": bool(m.group(10)),
                          "qty": int(m.group(2)), "port": int(m.group(4)), "via": m.group(5),

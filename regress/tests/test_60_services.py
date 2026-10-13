@@ -221,8 +221,9 @@ def test_rhp_status_request(rhp):
 
 # ---------------------------------------------------------------- AGW
 
-def agw_frame(kind: str, port: int = 0, call_from: str = "", call_to: str = "", data: bytes = b"") -> bytes:
-    return (struct.pack("<B3xB3x", port, ord(kind)) + call_from.encode().ljust(10, b"\0")
+def agw_frame(kind: str, port: int = 0, call_from: str = "", call_to: str = "", data: bytes = b"",
+              pid: int = 0xF0) -> bytes:
+    return (struct.pack("<B3xBxBx", port, ord(kind), pid) + call_from.encode().ljust(10, b"\0")
             + call_to.encode().ljust(10, b"\0") + struct.pack("<II", len(data), 0) + data)
 
 
@@ -254,11 +255,28 @@ def test_agw_port_info(stack):
         assert text.split(";")[0].strip("\0").isdigit() and int(text.split(";")[0]) >= 3, text
 
 
-def test_agw_send_ui(stack, probe_a):
-    """'M' sends an unproto frame on a port (AGW port 0 is XRouter port 1)."""
+def test_agw_send_ui_unregistered(stack, probe_a):
+    """'M' sends an unproto frame on a port (AGW port 0 is XRouter port 1).
+    AGWPE does not require the client to register a callsign ('X') first,
+    and 505c sends the frame without one."""
     t = time.time()
     with socket.create_connection((HOST, DUT_AGW), timeout=5) as s:
-        s.sendall(agw_frame("M", 0, "PN0AGW", "BEACON", b"agw hello"))
+        s.sendall(agw_frame("M", 0, "PN0AGW", "BEACON", b"agw hello unreg"))
         time.sleep(2)
-    f = probe_a.wait(lambda f: f.dst == "BEACON" and b"agw hello" in f.info, 8, t)
-    assert f is not None, "no UI frame after AGW 'M'"
+    f = probe_a.wait(lambda f: f.dst == "BEACON" and b"agw hello unreg" in f.info, 8, t)
+    assert f is not None, "no UI frame after AGW 'M' from a client that has not registered a callsign"
+    assert f.src == "PN0AGW" and f.pid == 0xF0, str(f)
+
+
+def test_agw_send_ui_registered(stack, probe_b):
+    """The same after registering a callsign ('X'), on AGW port 1 (XRouter
+    port 2)."""
+    t = time.time()
+    with socket.create_connection((HOST, DUT_AGW), timeout=5) as s:
+        s.sendall(agw_frame("X", 0, "PN0AGX"))
+        kind, data = agw_read(s)
+        assert kind == "X" and data[:1] == b"\x01", (kind, data)
+        s.sendall(agw_frame("M", 1, "PN0AGX", "BEACON", b"agw hello reg p2"))
+        time.sleep(2)
+    f = probe_b.wait(lambda f: f.dst == "BEACON" and b"agw hello reg p2" in f.info, 8, t)
+    assert f is not None, "no UI frame on port 2 after AGW 'X' then 'M'"

@@ -1,0 +1,3 @@
+PN#DUT:DUT} Syntax: S[tats] [L# | L# | L# | L# | IP | UDP | TCP | * |
+ ARP | AX# | AXIP | AXUDP | AXTCP | LAPB | ICMP | IDS | MQTT | NCMP |
+ NODES | PORT | SMTP | ERR]

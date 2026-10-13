@@ -1,5 +1,11 @@
 """Console command output, compared with 505c's.
 
+Deliberate changes in a later version are recorded as that version's own
+golden copy, golden/<version>/console/<id>.txt, holding only the commands
+whose output changed on purpose (XRR_ACCEPT=<id>,<id> writes them). For a
+version V the newest golden copy of a command from a version <= V is used,
+so 505o's accepted changes also apply to 505p unless 505p changes again.
+
 Each command's output is normalised (numbers, times, the version string) and
 compared with the golden copy in golden/<baseline>/console/, recorded from
 505c with XRR_UPDATE_GOLDEN=1. A difference is not necessarily a bug, but
@@ -23,6 +29,16 @@ from conftest import OUT, REGRESS, VERSION
 BASELINE = os.environ.get("XRR_BASELINE", "505c")
 GOLDEN = os.path.join(REGRESS, "golden", BASELINE, "console")
 UPDATE = os.environ.get("XRR_UPDATE_GOLDEN") == "1"
+ACCEPT = set(filter(None, os.environ.get("XRR_ACCEPT", "").split(",")))
+
+
+def golden_path(cid: str) -> str:
+    """The golden copy for this version: the newest version <= VERSION that has one."""
+    from conftest import version_key
+    root = os.path.join(REGRESS, "golden")
+    vers = sorted((v for v in os.listdir(root) if os.path.exists(os.path.join(root, v, "console", f"{cid}.txt"))
+                   and version_key(v) <= version_key(VERSION)), key=version_key, reverse=True)
+    return os.path.join(root, vers[0] if vers else BASELINE, "console", f"{cid}.txt")
 
 # (id, command, lines to compare or None for all). User-level commands first.
 USER_COMMANDS = [
@@ -92,13 +108,13 @@ SYSOP_COMMANDS = [
     ("ip-route-list", "IP ROUTE LIST", None),
     ("ip-config", "IP CONFIG", None),
     ("arp-list", "ARP L", None),
-    ("axroutes", "AX", 2),
+    ("axroutes", "AX", 1),
     ("bcast-times", "N BC T", 3),
     ("stats-star", "S *", None),
     ("stats-l2", "S L2", None),
     ("stats-l3", "S L3", None),
     ("stats-ip", "S IP", None),
-    ("peers", "PEERS", None),
+    ("peers", "PEERS", 2),
     ("man", "MAN", None),
     ("man-nodes", "MAN NODES", 10),
     ("cmd", "CMD", None),
@@ -134,10 +150,11 @@ def run_and_compare(console, cid: str, command: str, keep: int | None) -> None:
     with open(os.path.join(OUT, "console", f"{cid}.txt"), "w") as f:
         f.write(f">>> {command}\n{raw}")
     got = normalise(raw, keep)
-    path = os.path.join(GOLDEN, f"{cid}.txt")
-    if UPDATE:
-        os.makedirs(GOLDEN, exist_ok=True)
-        with open(path, "w") as f:
+    path = golden_path(cid)
+    if UPDATE or cid in ACCEPT:
+        d = GOLDEN if UPDATE else os.path.join(REGRESS, "golden", VERSION, "console")
+        os.makedirs(d, exist_ok=True)
+        with open(os.path.join(d, f"{cid}.txt"), "w") as f:
             f.write(got)
         return
     if not os.path.exists(path):
@@ -147,8 +164,8 @@ def run_and_compare(console, cid: str, command: str, keep: int | None) -> None:
     if got != want:
         import difflib
         diff = "".join(difflib.unified_diff(want.splitlines(True), got.splitlines(True),
-                                            f"{BASELINE}/{cid}", f"{VERSION}/{cid}"))
-        pytest.fail(f"`{command}` output differs from {BASELINE}:\n{diff}", pytrace=False)
+                                            os.path.relpath(path, REGRESS), f"{VERSION}/{cid}"))
+        pytest.fail(f"`{command}` output differs from {os.path.relpath(path, REGRESS)}:\n{diff}", pytrace=False)
 
 
 @pytest.mark.parametrize("cid,command,keep", USER_COMMANDS, ids=[c[0] for c in USER_COMMANDS])

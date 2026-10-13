@@ -1,0 +1,92 @@
+name: regress
+
+# XRouter behaviour regression suite (regress/): the version under test
+# against 505c's recorded behaviour. See regress/README.md.
+
+on:
+  workflow_dispatch:
+    inputs:
+      xrouter_tag:
+        description: "XRouter tag to test (e.g. 505o). Empty runs latest and 505c."
+        required: false
+        default: ""
+  workflow_run:
+    workflows: [build-and-publish]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.set.outputs.tags }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set
+        env:
+          INPUT_TAG: ${{ github.event.inputs.xrouter_tag }}
+        run: |
+          set -euo pipefail
+          if [ -n "${INPUT_TAG:-}" ]; then
+            tags=$(jq -cn --arg t "$INPUT_TAG" '[$t]')
+          else
+            tags=$(jq -c '[.latest_amd64, "505c"] | unique' versions.json)
+          fi
+          echo "tags=$tags" >> "$GITHUB_OUTPUT"
+
+  regress:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        tag: ${{ fromJson(needs.plan.outputs.tags) }}
+    name: xrouter ${{ matrix.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pytest
+      - name: run suite
+        env:
+          XROUTER_TAG: ${{ matrix.tag }}
+          XRR_OUT: ${{ github.workspace }}/regress/out/${{ matrix.tag }}
+        run: |
+          mkdir -p "$XRR_OUT"
+          python -m pytest regress/tests -v -rxXfE -p no:cacheprovider --junitxml="$XRR_OUT/junit.xml"
+      - name: summary
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import os, xml.etree.ElementTree as ET
+          tag = "${{ matrix.tag }}"
+          p = f"regress/out/{tag}/junit.xml"
+          print(f"### XRouter {tag} against 505c behaviour\n")
+          if not os.path.exists(p):
+              print("no results"); raise SystemExit
+          fails, xf, ok = [], [], 0
+          for tc in ET.parse(p).getroot().iter("testcase"):
+              f = tc.find("failure") if tc.find("failure") is not None else tc.find("error")
+              s = tc.find("skipped")
+              if f is not None:
+                  fails.append(tc.get("name"))
+              elif s is not None and s.get("type") == "pytest.xfail":
+                  xf.append(f"{tc.get('name')}: {s.get('message', '')}")
+              else:
+                  ok += 1
+          print(f"**Passed:** {ok}\n\n**Unexpected failures:** {len(fails)}\n")
+          for n in fails: print(f"- {n}")
+          print(f"\n**Known issues (expected failures):** {len(xf)}\n")
+          for n in xf: print(f"- {n}")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: regress-${{ matrix.tag }}
+          path: regress/out/${{ matrix.tag }}
+          if-no-files-found: warn
