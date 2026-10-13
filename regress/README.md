@@ -2,7 +2,7 @@
 
 This suite records how XRouter behaved before 505o, using 505c as the baseline. It then checks any other version against that behaviour. It is lighter than `interop/`: it needs only XRouter (two or three containers of it) and the test process itself, which plays the radio stations over AXUDP. It does not need LinBPQ, XNet or TNN.
 
-It was started to chase the problems reported on the xrouter groups.io list after the 505o release. [PROGRESS.md](PROGRESS.md) maps each report to its tests and tracks the work. [FINDINGS.md](FINDINGS.md) has the results. [INVENTORY.md](INVENTORY.md) is the feature inventory, drawn from the OARC wiki and the MAN pages, that the tests were planned from.
+It was started to chase the problems reported on the xrouter groups.io list after the 505o release. [PROGRESS.md](PROGRESS.md) maps each report to its tests and says how to resume the work. Open work is tracked as sub-issues of [#10](https://github.com/packethacking/xrouter-container/issues/10). [FINDINGS.md](FINDINGS.md) has the results. [INVENTORY.md](INVENTORY.md) is the feature inventory, drawn from the OARC wiki and the MAN pages, that the tests were planned from.
 
 ## The set-up
 

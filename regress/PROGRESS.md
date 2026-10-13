@@ -1,8 +1,58 @@
 # 505o regression hunt: plan and progress
 
-Tracking file for the work to capture XRouter's pre-505o behaviour in tests and
-run them against 505o. Kept up to date as work proceeds so a fresh session can
-pick it up. Baseline version: **505c** (the release before 505o).
+Tracking for the work to record XRouter's pre-505o behaviour in tests and run
+them against 505o. Baseline version: **505c** (the release before 505o).
+
+## Resume here
+
+This file and GitHub issue #10 (with its sub-issues) are the durable record;
+the session that wrote them may be gone. To pick the work up:
+
+1. Read this section, then `README.md` (how the suite works and runs) and
+   `FINDINGS.md` (what it found).
+2. **The work queue is the open sub-issues of #10**: each has a checklist and
+   says when it is done. Pick one, tick its boxes as you go, close it with a
+   comment saying what was done. Do not keep a second to-do list here.
+3. Run `regress/run.sh 505c 505o` (Docker, Python 3 + pytest, /dev/net/tun;
+   about 35 min). Expected: 505c 233 passed, 6 skipped, 3 xfailed; 505o 232
+   passed, 10 xfailed. Anything else is new information: a flaky test, a
+   harness break, or (on a new XRouter version) a behaviour change.
+4. After each meaningful step: update the tables below and the Log, commit,
+   push. Bugs go in their own issue (XRouter bugs: label `xrouter-bug`) and
+   in `known-issues.toml`; findings go in `FINDINGS.md`.
+5. A new XRouter version: run the suite on it; triage every failure as
+   regression (issue + known-issues entry), deliberate change (accepted
+   console output: `XRR_ACCEPT=<id>,... regress/run.sh <ver> -- -k console`),
+   or test noise (fix the test).
+
+### Open work (sub-issues of #10)
+
+| Issue | What | Blocked on |
+|---|---|---|
+| #15 | G7 route choice: LinBPQ as INP3 neighbour; link reset variant | - |
+| #16 | G11 TUN/44-net: rebuild with the reporter's config | VE2PKT's config (user's call to ask) |
+| #17 | Reverse FBB forwarding tests (FWD.SYS set-up) | - |
+| #18 | First CI run of the regress workflow | someone with Actions access |
+| #19 | Image: TUN with IOADDR needs ip/ifconfig | maintainer decision |
+| #20 | Report #11-#14 upstream | maintainer decision |
+| #21 | Link checker for regress/known-issues.toml | - |
+
+### Bugs found (issues)
+
+| Issue | Bug | Versions |
+|---|---|---|
+| #11 | AGW unproto from an unregistered client is dropped | 505o |
+| #12 | Undecodable compressed FBB message hangs the whole node | 505o |
+| #13 | `R n` / `n` empty body for forwarded mail | all (newly exposed by 505o's FBB forwarding) |
+| #14 | No answer to user commands after an FBB SID | 505o |
+| #2, #6 | Known from interop: RHP bind reply; NODES only on first port | |
+
+### State of the suite (last full runs, 2026-10-13)
+
+- 505c: 233 passed, 6 skipped (FBB tests; 505c has no F in its SID),
+  3 xfailed (#13, DEDHOST channel-0 unproto).
+- 505o: 232 passed, 10 xfailed (#2, #6, #11, #12 x2, #13 x3, #14, DEDHOST).
+  No unexpected failures.
 
 ## Goal
 
@@ -23,11 +73,11 @@ pick it up. Baseline version: **505c** (the release before 505o).
 | G4 | Tom M0LTE | INPBCINTERVAL ignored | 4374/4378 | interop | known, issue #4 |
 | G5 | Tom M0LTE | own node tt 0 | 4374 | interop | known, issue #5 |
 | G6 | Tom M0LTE | NODES broadcasts on first port only | 4377 | interop | known, issue #6 |
-| G7 | Danny PA2SNK | INP3 route via neighbour preferred over direct 1-hop quality 192 RF route; can't connect to that node any more | 4400/4401 | test_50_routing, test_51_routing_slow_rf | not reproduced: 505o prefers the direct route in every variant: direct neighbour NET/ROM-only or INP3, slow (0.8 s) direct link, sysop-locked q192 route, neighbour XRouter 505c or 505o (505o neighbour sends the node INP3-only, qty 0). Untried: BPQ as the INP3 neighbour (PE1OEZ's software unknown), link resets. Need Danny's N/R output |
+| G7 | Danny PA2SNK | INP3 route via neighbour preferred over direct 1-hop quality 192 RF route; can't connect to that node any more | 4400/4401 | test_50_routing, test_51_routing_slow_rf | not reproduced: 505o prefers the direct route in every variant: direct neighbour NET/ROM-only or INP3, slow (0.8 s) direct link, sysop-locked q192 route, neighbour XRouter 505c or 505o (505o neighbour sends the node INP3-only, qty 0). Further work: #15 |
 | G8 | Danny PA2SNK | Beacon digi (unproto via the node) no longer relayed | 4400 | test_20_digi, test_60 AGW | digipeating and BCAST same as 505c; FOUND: AGW 'M' unproto from an unregistered client is not sent on 505o (505c sends it). Possibly Danny's case. |
 | G9 | Danny PA2SNK | BBS: compressed forward ok, but message retrieval by number disconnects | 4400 | test_40_pms, test_41_fbb | FOUND: R n / n show an EMPTY body for every forwarded message without a blank line after the R: lines (#13; pre-existing for MBL forwarding, but now hits all FBB/compressed forwarded mail). FOUND: undecodable compressed data hangs the whole node (#12). FOUND: after an FBB SID user commands get no answer (#14). Valid B0 compressed and ASCII FBB forwarding work |
 | G10 | Danny PA2SNK | BBS connect text / prompt changed: only header and prompt | 4400 | test_40_pms greetings, test_55 BBS over L4 | not reproduced for plain users (greeting identical apart from SID); likely the FBB-SID path above |
-| G11 | Jean VE2PKT | AMPRNet (44/8) IP traffic not routed out the TUN interface; can't ping any 44 station; AXUDP/AXTCP fine | 4386-4397 | test_31_ip_gateway (node config/ip) | not reproduced: all 13 gateway tests pass on 505o; variants tried by hand (TUN port w/o IPADDRESS, port IP = 44 address, persistent tunnel) identical on 505c/505o. Need Jean's config |
+| G11 | Jean VE2PKT | AMPRNet (44/8) IP traffic not routed out the TUN interface; can't ping any 44 station; AXUDP/AXTCP fine | 4386-4397 | test_31_ip_gateway (node config/ip) | not reproduced: all 13 gateway tests pass on 505o; variants tried by hand (TUN port w/o IPADDRESS, port IP = 44 address, persistent tunnel) identical on 505c/505o. Further work: #16 |
 | G12 | Danny Moss VK7HDM | no 32-bit stretch build | 4371 | n/a (packaging) | not testable |
 | G13 | Danny PA2SNK | systemd service still starts 505c | 4383 | n/a (local setup) | not a bug |
 
@@ -42,7 +92,8 @@ pick it up. Baseline version: **505c** (the release before 505o).
 - [x] W7 BBS / PMS tests (G9, G10): test_40_pms
 - [x] W8 HTTP / REST / RHP / AGW: test_60_services
 - [x] W9 Run 505c vs 505o, write FINDINGS, open GitHub issues (#10-#14)
-- [x] W10 CI workflow (.github/workflows/regress.yml; not yet run in Actions)
+- [x] W10 CI workflow (.github/workflows/regress.yml; first run: #18)
+- [ ] W11 onwards: the open sub-issues of #10 (table at the top)
 
 ## Log
 
@@ -63,41 +114,6 @@ pick it up. Baseline version: **505c** (the release before 505o).
   must be green on 505c before its 505o results mean anything). Fixes from
   calibration: BCAST needs the destination in the receiving port's list too;
   CTEXT is only sent for alias connects by default (CTFLAGS 9).
-
-## Results so far (2026-10-13)
-
-505c: all tests pass (it is the baseline). 505o first full run: 16 failures,
-triaged:
-
-- Test harness artefacts, fixed: routing regex vs 505o's new Last-Update
-  column; test_55 had never been calibrated on 505c; telnet closing after B.
-- Accepted changes (golden/505o/console): new GO command in help lists, new
-  STATS fields (Mem blocks .../Out, L4 Conns .../Rej, L3 In Pkts Faulty,
-  Brdcast Pkts Sent), STATS ARP option.
-- Known: RHP bind reply (issue #2).
-- NEW regression: AGW 'M' (send unproto) from a client that has not
-  registered a callsign with 'X' is dropped on 505o; 505c sends it.
-- NEW behaviour change: BBS SID [XR-505o-BFHM$]; FBB-SID sessions go into
-  forwarding mode and ignore user commands.
-- Pre-existing, both versions: empty NODES broadcasts are ignored (a lone
-  node is never learned); TUN with IOADDR needs ip/ifconfig on the host.
-
-## GitHub issues
-
-- #10 tracking issue for this work
-- #11 AGW unproto from an unregistered client dropped (505o regression)
-- #12 undecodable compressed FBB message hangs the node (505o)
-- #13 R n / n empty body for forwarded messages (pre-existing, newly exposed)
-- #14 silence after an FBB SID (505o)
-
-## Next steps
-
-1. CI run in Actions: this session could not dispatch workflows (403); it
-   runs after the next image publish, or start it from the Actions tab.
-2. G7: ask Danny for `N JOURE` / `R` output (user's call to post).
-3. Reverse FBB forwarding (BBS proposes to partner) needs FWD.SYS set-up.
-4. DEDHOST done (test_70); channel-0 unproto does not transmit on 505c either.
-5. Report findings to groups.io? (user's call)
 - 2026-10-13: FBB work. LZHUF codec (tests/lzhuf.py, byte-exact with LinFBB)
   by a subagent. Found #12, #13, #14. G7 slow-RF variants: no difference.
   Chat and telnet access tests added (test_45). G11 variants by hand: none
@@ -110,3 +126,5 @@ triaged:
   SID), 3 xfailed (pre-existing #13, DEDHOST unproto); 505o 232 passed,
   10 xfailed (#2, #6, #11, #12, #13, #14, DEDHOST unproto), no unexpected
   failures.
+- 2026-10-13: tracking reorganised for resumability: open work moved into
+  sub-issues #15-#21 of #10; this file now starts with "Resume here".
