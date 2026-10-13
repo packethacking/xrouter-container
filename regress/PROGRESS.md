@@ -35,6 +35,12 @@ the session that wrote them may be gone. To pick the work up:
 |---|---|---|
 | #16 | G11 TUN/44-net: rebuild with the reporter's config | **parked** until VE2PKT volunteers his config (maintainer decision) |
 | #18 | First CI run of the regress workflow | maintainer runs the command in the issue |
+| #24 | Coverage: AX.25 L2 robustness | - |
+| #25 | Coverage: arm64 / armv7 builds under QEMU | - |
+| #26 | Coverage: BBS calling out, duplicates, large messages | - |
+| #27 | Coverage: sysop set-and-read-back, state across restart | - |
+| #28 | Coverage: IP over NET/ROM/VC, ENCAP/IPIP, TCP over XRouter's stack | - |
+| #29 | Coverage: malformed input on every protocol entry point | - |
 
 Coverage and the gaps worth closing next: `COVERAGE.md`.
 

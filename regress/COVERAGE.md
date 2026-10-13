@@ -27,9 +27,9 @@ How much of XRouter's behaviour `regress/` (with `interop/` alongside) is likely
 
 ## Gaps worth closing next (by likely value)
 
-1. **AX.25 L2 robustness:** retries, link failure, REJ, RNR, window, long-output segmentation. Every service depends on it, and the probe's L2 client can be extended to misbehave on purpose.
-2. **arm64 / armv7 builds**, run under QEMU: most sysops run XRouter on Raspberry Pis, so a Pi-only regression would get past the suite today.
-3. **The BBS calling out** with FWD.SYS connect scripts and polling, plus duplicate rejection and large multi-block messages: the forwarding path PA2SNK uses.
-4. **Parameter-setting commands** (set, read back, survive restart where applicable), and SAVENODES/LOADNODES.
-5. **IP over NET/ROM and ENCAP/IPIP**, plus TCP services over XRouter's own stack: the remaining AMPRNet paths.
-6. **Fuzz-style malformed input** on each protocol entry point (AX.25, NET/ROM, RIF, NODES, IP, RHP JSON, AGW, FBB blocks). #12 suggests input validation is a real risk area.
+1. **AX.25 L2 robustness:** (#24) retries, link failure, REJ, RNR, window, long-output segmentation. Every service depends on it, and the probe's L2 client can be extended to misbehave on purpose.
+2. **arm64 / armv7 builds** (#25), run under QEMU: most sysops run XRouter on Raspberry Pis, so a Pi-only regression would get past the suite today.
+3. **The BBS calling out** (#26) with FWD.SYS connect scripts and polling, plus duplicate rejection and large multi-block messages: the forwarding path PA2SNK uses.
+4. **Parameter-setting commands** (#27) (set, read back, survive restart where applicable), and SAVENODES/LOADNODES.
+5. **IP over NET/ROM and ENCAP/IPIP** (#28), plus TCP services over XRouter's own stack: the remaining AMPRNet paths.
+6. **Fuzz-style malformed input** (#29) on each protocol entry point (AX.25, NET/ROM, RIF, NODES, IP, RHP JSON, AGW, FBB blocks). #12 suggests input validation is a real risk area.
