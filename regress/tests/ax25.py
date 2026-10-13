@@ -346,6 +346,21 @@ class L2Session:
         out, self.text = self.text, ""
         return out.replace("\r", "\n")
 
+    def read_raw(self, quiet: float = 1.5, limit: float = 15.0) -> bytes:
+        """Like read() but the bytes as received, CRs and all (binary data)."""
+        end = time.time() + limit
+        last_len = len(self.text)
+        last = time.time()
+        while time.time() < end:
+            time.sleep(0.1)
+            if len(self.text) != last_len:
+                last_len = len(self.text)
+                last = time.time()
+            elif time.time() - last > quiet:
+                break
+        out, self.text = self.text, ""
+        return out.encode("latin-1")
+
     def expect(self, needle: str, timeout: float = 15.0) -> str:
         import re
         rx = re.compile(needle, re.I | re.M)

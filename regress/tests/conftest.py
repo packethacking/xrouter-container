@@ -163,7 +163,7 @@ def stack(wirelog):
     if not reuse:
         for tag in {VERSION, NBR_VERSION}:
             build_image(tag)
-        sh("docker", "rm", "-f", "xrr-dut", "xrr-nbr", "xrr-ip", check=False)
+        sh("docker", "rm", "-f", "xrr-dut", "xrr-nbr", "xrr-ip", "xrr-fbb", check=False)
         if sh("docker", "network", "inspect", NET, check=False).returncode != 0:
             sh("docker", "network", "create", "--subnet", SUBNET, NET)
     # Probes first, so nothing XRouter sends at boot is lost.
@@ -270,3 +270,41 @@ def ipcon(ipgw):
     c.sysop(SYSOP_PASSWORD)
     yield c
     c.close()
+
+
+# ---------------------------------------------------------------- throwaway BBS node
+
+FBB_IP, FBB_TELNET, PROBE_E = "172.28.78.14", 18027, 30005
+
+
+def fbb_config_dir() -> str:
+    """config/dut with only port 1, pointed at probe E: a BBS node that a
+    test may crash without disturbing the shared DUT."""
+    import re as _re
+    src = os.path.join(REGRESS, "config", "dut")
+    dst = os.path.join(OUT, "fbb-config")
+    os.makedirs(dst, exist_ok=True)
+    for f in os.listdir(src):
+        text = open(os.path.join(src, f)).read()
+        if f == "XROUTER.CFG":
+            text = _re.sub(r"\nPORT=[23]\n.*?ENDPORT\n", "\n", text, flags=_re.S)
+            text = text.replace("UDPREMOTE=30001", f"UDPREMOTE={PROBE_E}")
+        with open(os.path.join(dst, f), "w") as out:
+            out.write(text)
+    return dst
+
+
+@pytest.fixture
+def fbbnode(stack, wirelog):
+    """A fresh BBS node (xrr-fbb) per test, and probe E on its port 1."""
+    start_node("xrr-fbb", FBB_IP, VERSION, fbb_config_dir(), {FBB_TELNET: 23})
+    wait_booted("xrr-fbb")
+    time.sleep(2)
+    probe = Probe("E", ("0.0.0.0", PROBE_E), (FBB_IP, 10093), wirelog)
+    yield probe
+    probe.close()
+    r = sh("docker", "logs", "xrr-fbb", check=False)
+    with open(os.path.join(OUT, "xrr-fbb.log"), "a") as f:
+        f.write(r.stdout + r.stderr)
+    if os.environ.get("XRR_KEEP") != "1":
+        sh("docker", "rm", "-f", "xrr-fbb", check=False)

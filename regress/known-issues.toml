@@ -27,3 +27,23 @@ id = "nodes-first-port-only"
 issue = "https://github.com/packethacking/xrouter-container/issues/6"
 title = "Scheduled NODES broadcasts only go out on the first port"
 tests = ["test_dut_broadcasts_nodes_on_port2"]
+
+[[issue]]
+id = "fbb-bad-compressed-data-hangs"
+issue = "https://github.com/packethacking/xrouter-container/issues/12"
+title = "Undecodable compressed (FA) message hangs the whole node"
+from = "505o"
+tests = ["test_fbb_bad_compressed_data_does_not_hang_node"]
+
+[[issue]]
+id = "read-forwarded-no-body"
+issue = "https://github.com/packethacking/xrouter-container/issues/13"
+title = "R n / n show an empty body for forwarded messages with no blank line after the R: lines"
+tests = ["test_read_forwarded_message_shows_body", "test_read_mbl_forwarded_message_shows_body"]
+
+[[issue]]
+id = "fbb-sid-silent"
+issue = "https://github.com/packethacking/xrouter-container/issues/14"
+title = "After an FBB SID, user commands get no answer at all"
+from = "505o"
+tests = ["test_user_command_after_fbb_sid_gets_an_answer"]

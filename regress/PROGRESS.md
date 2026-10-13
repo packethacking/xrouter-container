@@ -23,9 +23,9 @@ pick it up. Baseline version: **505c** (the release before 505o).
 | G4 | Tom M0LTE | INPBCINTERVAL ignored | 4374/4378 | interop | known, issue #4 |
 | G5 | Tom M0LTE | own node tt 0 | 4374 | interop | known, issue #5 |
 | G6 | Tom M0LTE | NODES broadcasts on first port only | 4377 | interop | known, issue #6 |
-| G7 | Danny PA2SNK | INP3 route via neighbour preferred over direct 1-hop quality 192 RF route; can't connect to that node any more | 4400/4401 | test_50_routing | not reproduced (basic case): 505o prefers the direct route; more variants TODO |
+| G7 | Danny PA2SNK | INP3 route via neighbour preferred over direct 1-hop quality 192 RF route; can't connect to that node any more | 4400/4401 | test_50_routing, test_51_routing_slow_rf | not reproduced: 505o prefers the direct route, also with a slow (0.8 s) direct link, direct neighbour INP3 or not. Untried: 505o neighbour, BPQ neighbour, link resets |
 | G8 | Danny PA2SNK | Beacon digi (unproto via the node) no longer relayed | 4400 | test_20_digi, test_60 AGW | digipeating and BCAST same as 505c; FOUND: AGW 'M' unproto from an unregistered client is not sent on 505o (505c sends it). Possibly Danny's case. |
-| G9 | Danny PA2SNK | BBS: compressed forward ok, but message retrieval by number disconnects | 4400 | test_40_pms | plain user read by number fine on 505o. FOUND: 505o SID is now [XR-505o-BFHM$] (adds B, F); after a client sends an FBB SID (tsthost does) 505o silently ignores R n / n / L (505c: '>' then disconnect on R). FBB protocol tests TODO |
+| G9 | Danny PA2SNK | BBS: compressed forward ok, but message retrieval by number disconnects | 4400 | test_40_pms, test_41_fbb | FOUND: R n / n show an EMPTY body for every forwarded message without a blank line after the R: lines (#13; pre-existing for MBL forwarding, but now hits all FBB/compressed forwarded mail). FOUND: undecodable compressed data hangs the whole node (#12). FOUND: after an FBB SID user commands get no answer (#14). Valid B0 compressed and ASCII FBB forwarding work |
 | G10 | Danny PA2SNK | BBS connect text / prompt changed: only header and prompt | 4400 | test_40_pms greetings, test_55 BBS over L4 | not reproduced for plain users (greeting identical apart from SID); likely the FBB-SID path above |
 | G11 | Jean VE2PKT | AMPRNet (44/8) IP traffic not routed out the TUN interface; can't ping any 44 station; AXUDP/AXTCP fine | 4386-4397 | test_31_ip_gateway (node config/ip) | not reproduced: all 13 gateway tests pass on 505o; variants tried by hand (TUN port w/o IPADDRESS, port IP = 44 address, persistent tunnel) identical on 505c/505o. Need Jean's config |
 | G12 | Danny Moss VK7HDM | no 32-bit stretch build | 4371 | n/a (packaging) | not testable |
@@ -82,14 +82,22 @@ triaged:
 - Pre-existing, both versions: empty NODES broadcasts are ignored (a lone
   node is never learned); TUN with IOADDR needs ip/ifconfig on the host.
 
+## GitHub issues
+
+- #10 tracking issue for this work
+- #11 AGW unproto from an unregistered client dropped (505o regression)
+- #12 undecodable compressed FBB message hangs the node (505o)
+- #13 R n / n empty body for forwarded messages (pre-existing, newly exposed)
+- #14 silence after an FBB SID (505o)
+
 ## Next steps
 
-1. GitHub issues: tracking issue + AGW regression + SID/FBB behaviour.
-2. FINDINGS.md write-up.
-3. G7 variants: direct neighbour with no time metric (Stt 600) vs INP3 path;
-   neighbour 505o as well; route after link reset.
-4. G9: FBB ASCII forwarding tests (FB/FS/FF/FQ) and reverse forward; maybe
-   B1 compressed (LZHUF) if feasible.
-5. G8: DEDHOST (WA8DED host mode) unproto via XRouter's emulation, which
-   tsthost-style programs use.
-6. Second full 505o run for flakiness; CI run in Actions.
+1. Full 505c and 505o runs of the whole suite (stability); CI run in Actions.
+2. G7 more variants: 505o neighbour (XRR_NBR_TAG=505o), link reset.
+3. Reverse FBB forwarding (BBS proposes to partner) needs FWD.SYS set-up.
+4. DEDHOST (WA8DED host mode) unproto, for tsthost-style programs.
+5. Report findings to groups.io? (user's call)
+- 2026-10-13: FBB work. LZHUF codec (tests/lzhuf.py, byte-exact with LinFBB)
+  by a subagent. Found #12, #13, #14. G7 slow-RF variants: no difference.
+  Chat and telnet access tests added (test_45). G11 variants by hand: none
+  differ between 505c and 505o.
