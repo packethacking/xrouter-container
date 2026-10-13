@@ -43,7 +43,8 @@ def rif(rips) -> bytes:
 
 class FakeNode:
     def __init__(self, probe: Probe, call: str, alias: str, neighbour: str, inp3: bool = False,
-                 nodes_entries=(), rif_extra=(), nodes_every: float = 30.0, rif_every: float = 60.0):
+                 nodes_entries=(), rif_extra=(), nodes_every: float = 30.0, rif_every: float = 60.0,
+                 delay: float = 0.0):
         self.probe, self.call, self.alias, self.neighbour = probe, call.upper(), alias.upper(), neighbour.upper()
         self.inp3 = inp3
         # XRouter ignores a NODES broadcast with no entries, so always list
@@ -51,7 +52,7 @@ class FakeNode:
         self.nodes_entries = list(nodes_entries) or [(f"{self.call}-7", self.alias[:5] + "B", self.call, 200)]
         self.rif_extra = list(rif_extra)
         self.nodes_every, self.rif_every = nodes_every, rif_every
-        self.session = L2Session(probe, self.call, self.neighbour)
+        self.session = L2Session(probe, self.call, self.neighbour, delay=delay)
         self.session.state = "listening"
         self.l3rtt_reflected = 0
         self.rifs_sent = 0
@@ -89,7 +90,7 @@ class FakeNode:
         s.vs = (s.vs + 1) & 7
         ctl = (ns << 1) | (s.vr << 5)
         from ax25 import Frame
-        self.probe.send(Frame(dst=self.neighbour, src=self.call, ctl=ctl, pid=PID_NETROM, info=info))
+        self.session._tx(Frame(dst=self.neighbour, src=self.call, ctl=ctl, pid=PID_NETROM, info=info))
 
     def send_l3rtt(self) -> None:
         """Our own L3RTT probe, as LinBPQ sends it: NET/ROM L3 to L3RTT with
@@ -104,7 +105,7 @@ class FakeNode:
         self.rifs_sent += 1
 
     def broadcast(self) -> None:
-        self.probe.send(ui("NODES", self.call, nodes_broadcast(self.alias, self.nodes_entries), pid=PID_NETROM))
+        self.session._tx(ui("NODES", self.call, nodes_broadcast(self.alias, self.nodes_entries), pid=PID_NETROM))
 
     def _run(self) -> None:
         next_nodes = 0.0

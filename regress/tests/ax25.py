@@ -239,12 +239,13 @@ class L2Session:
     polls. That is enough for interactive sessions with the node.
     """
 
-    def __init__(self, probe: Probe, mycall: str, remote: str, digis=(), t1: float = 3.0):
+    def __init__(self, probe: Probe, mycall: str, remote: str, digis=(), t1: float = 3.0, delay: float = 0.0):
         self.probe = probe
         self.mycall = mycall.upper()
         self.remote = remote.upper()
         self.digis = list(digis)
         self.t1 = t1
+        self.delay = delay   # seconds added before every frame we send (a slow link)
         self.vs = 0          # next N(S) we send
         self.vr = 0          # next N(S) we expect
         self.va = 0          # oldest unacknowledged
@@ -254,6 +255,12 @@ class L2Session:
         self.events: list[Frame] = []
         self.lock = threading.Lock()
         probe.sessions[(self.mycall, self.remote)] = self
+
+    def _tx(self, f: Frame) -> None:
+        if self.delay:
+            threading.Timer(self.delay, self.probe.send, (f,)).start()
+        else:
+            self.probe.send(f)
 
     def _f(self, ctl: int, command: bool = True, pid=None, info=b"") -> Frame:
         return Frame(dst=self.remote, src=self.mycall, digis=[(d, False) for d in self.digis],
@@ -268,23 +275,23 @@ class L2Session:
             elif t == "DM":
                 self.state = "disconnected"
             elif t == "DISC":
-                self.probe.send(self._f(U_CODES["UA"] | (0x10 if f.pf else 0), command=False))
+                self._tx(self._f(U_CODES["UA"] | (0x10 if f.pf else 0), command=False))
                 self.state = "disconnected"
             elif t == "SABM":
                 # Remote (re)established the link: reset sequence numbers.
                 self.vs = self.vr = self.va = 0
-                self.probe.send(self._f(U_CODES["UA"] | (0x10 if f.pf else 0), command=False))
+                self._tx(self._f(U_CODES["UA"] | (0x10 if f.pf else 0), command=False))
                 self.state = "connected"
             elif t == "I":
                 if f.ns == self.vr:
                     self.vr = (self.vr + 1) & 7
                     self.text += f.info.decode("latin-1")
                 self.va = f.nr
-                self.probe.send(self._f(0x01 | (self.vr << 5) | (0x10 if f.pf else 0), command=False))
+                self._tx(self._f(0x01 | (self.vr << 5) | (0x10 if f.pf else 0), command=False))
             elif t in ("RR", "RNR", "REJ"):
                 self.va = f.nr
                 if f.pf and f.command:
-                    self.probe.send(self._f(0x01 | (self.vr << 5) | 0x10, command=False))
+                    self._tx(self._f(0x01 | (self.vr << 5) | 0x10, command=False))
 
     # -- API ----------------------------------------------------------------
 
@@ -292,7 +299,7 @@ class L2Session:
         self.state = "connecting"
         end = time.time() + timeout
         while time.time() < end and self.state == "connecting":
-            self.probe.send(self._f(U_CODES["SABM"] | 0x10))
+            self._tx(self._f(U_CODES["SABM"] | 0x10))
             t = time.time() + self.t1
             while time.time() < t and self.state == "connecting":
                 time.sleep(0.05)
@@ -309,7 +316,7 @@ class L2Session:
             first = True
             while time.time() < end:
                 ctl = (ns << 1) | (self.vr << 5) | (0 if first else 0x10)
-                self.probe.send(self._f(ctl, pid=0xF0, info=chunk))
+                self._tx(self._f(ctl, pid=0xF0, info=chunk))
                 first = False
                 t = time.time() + self.t1
                 while time.time() < t:
@@ -358,7 +365,7 @@ class L2Session:
             return
         end = time.time() + timeout
         while time.time() < end and self.state == "connected":
-            self.probe.send(self._f(U_CODES["DISC"] | 0x10))
+            self._tx(self._f(U_CODES["DISC"] | 0x10))
             t = time.time() + self.t1
             while time.time() < t and self.state == "connected":
                 time.sleep(0.05)
