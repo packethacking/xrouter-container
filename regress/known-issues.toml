@@ -6,3 +6,24 @@
 # an issue still open). Affected tests are expected failures (XFAIL);
 # strict = true (default) turns an unexpected pass red so a fix is noticed.
 # `issue` links the GitHub issue, `groupsio` the report on groups.io.
+
+[[issue]]
+id = "rhp-bind-reply-malformed"
+issue = "https://github.com/packethacking/xrouter-container/issues/2"
+title = "RHP bind reply is not valid JSON (type bind, errText label missing)"
+from = "505o"
+until = "505o"
+tests = ["test_rhp_bind_listen_reply"]
+
+[[issue]]
+id = "agw-unproto-needs-registration"
+issue = "https://github.com/packethacking/xrouter-container/issues/11"
+title = "AGW 'M' unproto from a client that has not registered a callsign is not sent"
+from = "505o"
+tests = ["test_agw_send_ui_unregistered"]
+
+[[issue]]
+id = "nodes-first-port-only"
+issue = "https://github.com/packethacking/xrouter-container/issues/6"
+title = "Scheduled NODES broadcasts only go out on the first port"
+tests = ["test_dut_broadcasts_nodes_on_port2"]

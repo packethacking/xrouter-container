@@ -46,14 +46,17 @@ def test_dut_broadcasts_nodes_on_port1(probe_a):
     assert {"DUTAPP", "DUTPMS", "DUTCHT"} <= names, entries(f.info)
 
 
-def test_dut_broadcasts_nodes_on_port2(probe_b):
-    """Known: XRouter's scheduled NODES go only on its first port (interop finding 6)."""
-    end = time.time() + 90
+def test_dut_broadcasts_nodes_on_port2(stack, probe_b):
+    """A scheduled NODES broadcast on port 2 (NODESINTERVAL=1), not just the
+    one every port gets at start-up. Known: only the first port gets them
+    (issue #6)."""
+    since = stack["t0"] + 75
+    end = max(time.time(), since) + 90
     got = []
     while time.time() < end and not got:
-        got = probe_b.received(0, lambda f: f.dst == "NODES" and f.src == DUT_CALL)
+        got = probe_b.received(since, lambda f: f.dst == "NODES" and f.src == DUT_CALL)
         time.sleep(1)
-    assert got, "no NODES broadcast from the DUT on port 2 in 90 s"
+    assert got, "no scheduled NODES broadcast from the DUT on port 2"
 
 
 def test_dut_learns_node_from_broadcast(probe_b, dut):
