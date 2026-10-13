@@ -24,7 +24,7 @@ Reports from groups.io that the suite has not reproduced so far (see PROGRESS.md
 
 | | Report | What the suite shows |
 |---|---|---|
-| G7 | PA2SNK: INP3 route via a neighbour chosen over a direct 1-hop quality-192 route | With a direct NET/ROM neighbour at quality 192 and a 2-hop INP3 path to the same node through another XRouter, 505o picks the direct route, as 505c does, and a connect goes direct |
+| G7 | PA2SNK: INP3 route via a neighbour chosen over a direct 1-hop quality-192 route | With a direct neighbour at quality 192 and a 2-hop INP3 path to the same node through another XRouter, 505o uses the direct route and a connect goes direct, as on 505c. That held in every variant tried: direct neighbour NET/ROM-only or INP3; direct link slow (0.8 s) while the INP3 path is fast; route locked by the sysop at 192; neighbour XRouter 505c or 505o. Not tried: LinBPQ as the INP3 neighbour. Danny's `N JOURE` and `R` output would narrow it down |
 | G8 | PA2SNK: beacon digi (unproto request) no longer relayed | UI and connected-mode digipeating via the node call, the alias, PORTALIAS2, WIDEn-n and TRACEn-n, BCAST of MAIL and FBB beacons, and `SEND` with digis all behave as on 505c. The one unproto path that changed is AGW `M` (R1) |
 | G9 | PA2SNK: BBS read by number disconnects (tsthost, compressed forward) | **Likely explained by B1, R3 and R4.** Messages that arrive by FBB/compressed forwarding read as empty with `R n` (B1); undecodable compressed data hangs the node (R3); after an FBB SID user commands get no answer (R4). A plain user reading local mail works |
 | G10 | PA2SNK: BBS connect text / prompt shows only header and prompt | A plain user gets the same greeting as on 505c apart from the SID. An FBB-SID client gets no prompt at all after its SID (C2) |
@@ -80,6 +80,11 @@ These are recorded in `golden/505o/console/`. Help lists gain `go`; STATS gains 
 ## P1. Empty NODES broadcasts are ignored
 
 On 505c and 505o alike, a NODES broadcast with no entries (only the sender's alias) creates no route to the sender. A node with nothing else to announce, or another XRouter with no applications, is therefore never learned from NODES. On a port other than XRouter's first, XRouter's own scheduled broadcasts don't arrive either (#6), so two such XRouters never find each other. This is not a 505o regression. It is noted here because it shaped the test set-up: the neighbour has an application.
+
+## Other observations
+
+- A 505o neighbour passes a node it learned by INP3 on as INP3 only: the DUT's route via it shows quality 0. A 505c neighbour also sends it in NODES (quality 156 here).
+- XRouter's WA8DED host-mode emulation (DEDHOST) works for applications on both versions: a connect on channel 1 enters the node shell, and node commands and onward connects work. Channel-0 unproto from the host does not transmit on either version (`test_70_dedhost`). This may be a set-up detail we have not found.
 
 ## Harness notes
 
