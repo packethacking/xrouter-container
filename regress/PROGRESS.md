@@ -50,12 +50,12 @@ Coverage and the gaps worth closing next: `COVERAGE.md`.
 
 | Issue | Bug | Versions |
 |---|---|---|
-| #11 | AGW unproto from an unregistered client is dropped | 505o |
-| #12 | Undecodable compressed FBB message hangs the whole node | 505o |
+| #11 | AGW unproto from an unregistered client is dropped | 505n, 505o |
+| #12 | Undecodable compressed FBB message hangs the whole node | 505n, 505o |
 | #13 | `R n` / `n` empty body for forwarded mail | all (newly exposed by 505o's FBB forwarding) |
-| #14 | No answer to user commands after an FBB SID | 505o |
-| #22 | FBB ASCII forwarding out ends with /EX, not Ctrl-Z | 505o |
-| #23 | MBL forwarding out: stray NUL before /EX | 505c (fixed in 505o) |
+| #14 | No answer to user commands after an FBB SID | 505n, 505o |
+| #22 | FBB ASCII forwarding out ends with /EX, not Ctrl-Z | 505n, 505o |
+| #23 | MBL forwarding out: stray NUL before /EX | 505c (fixed in 505n and 505o) |
 | #2, #6 | Known from interop: RHP bind reply; NODES only on first port | |
 
 ### State of the suite (last full runs, 2026-10-14)
@@ -160,3 +160,11 @@ Coverage and the gaps worth closing next: `COVERAGE.md`.
   directory) + repro.py (stdlib only) for #11 #12 #13 #14 #22 #23; verified
   on 505c and 505o as a non-root user and from a fresh clone; every bug
   issue rewritten to lead with those steps and the real output.
+- 2026-10-14: #2, #3, #6, #11-#14, #22 reported to the author by private
+  email (label `reported`; #7 not yet). New upstream build found:
+  `xrlin64v505n-static` (groups.io files, uploaded 2026-10-13 after 505o,
+  SID `[XR-505n-BFHM$]`; not yet in versions.json). Repros and interop on
+  505n: same as 505o except #2 (bind reply valid) and #23 (clean). #3
+  also on 505n (known-issues `from` moved to 505n, likewise #11 #12 #14
+  #22). repro/ now covers #2 #3 #6 too. All open issues reviewed and
+  updated with 505n results.

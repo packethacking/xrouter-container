@@ -2,6 +2,8 @@
 
 These are the results of the regress suite. The baseline is 505c and the version under test is 505o, both x86-64 static builds. The neighbour XRouter is 505c unless stated otherwise. Every test passes on 505c, so each 505o failure below is a difference between the two versions. Each entry gives what was tested, what 505c does and what 505o does. Evidence comes from the probes' frame log (`out/<tag>/probes.txt`) and the console log (`out/<tag>/consoles.txt`).
 
+505n (`xrlin64v505n-static`, uploaded to groups.io after 505o) matches 505o on every finding below except R2 (#2: its RHP bind reply is valid). Verified with `repro/` and the interop suite on 2026-10-14.
+
 Every bug below has a verified stand-alone reproduction in [`repro/`](repro/README.md): a published binary run in a plain directory, plus a standard-library Python script. No Docker and no root are needed.
 
 ## Summary
