@@ -34,7 +34,6 @@ the session that wrote them may be gone. To pick the work up:
 | Issue | What | Blocked on |
 |---|---|---|
 | #16 | G11 TUN/44-net: rebuild with the reporter's config | **parked** until VE2PKT volunteers his config (maintainer decision) |
-| #18 | First CI run of the regress workflow | maintainer runs the command in the issue |
 | #24 | Coverage: AX.25 L2 robustness | - |
 | #25 | Coverage: arm64 / armv7 builds under QEMU | - |
 | #26 | Coverage: BBS calling out, duplicates, large messages | - |
@@ -149,3 +148,6 @@ Coverage and the gaps worth closing next: `COVERAGE.md`.
   probe's L2 now answers XID with FRMR so v2.2 callers fall back to SABM);
   direct link failure and recovery. G7 still not reproduced. COVERAGE.md
   written.
+- 2026-10-14: first CI run (automatic after the #19 image publish) matches
+  local results: 505c green, 505o 232 passed / 10 xfailed. #18 closed.
+  Coverage gaps filed as #24-#29.
