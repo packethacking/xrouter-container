@@ -21,7 +21,10 @@ the session that wrote them may be gone. To pick the work up:
    push. Bugs go in their own issue (XRouter bugs: label `xrouter-bug`) and
    in `known-issues.toml`; findings go in `FINDINGS.md`. Maintainer
    decision: XRouter bug reports stay as GitHub issues here; do not post
-   them to groups.io (#20).
+   them to groups.io (#20). Every XRouter bug issue leads with a verified
+   stand-alone reproduction from `repro/` (published binary, no Docker,
+   no root): add one to `repro/repro.py` for each new bug and paste the
+   real output into the issue.
 6. Check groups.io (group `xrouter`) for new reports at the start of each
    session; add them to the reports table below.
 5. A new XRouter version: run the suite on it; triage every failure as
@@ -153,3 +156,7 @@ Coverage and the gaps worth closing next: `COVERAGE.md`.
   Coverage gaps filed as #24-#29.
 - 2026-10-14: full runs with #15/#17 additions: all green against known
   issues (after fixing the DEDHOST fixture for the BBS config's PMS/ subdir).
+- 2026-10-14: repro/ kit: start-node.sh (any published binary, plain
+  directory) + repro.py (stdlib only) for #11 #12 #13 #14 #22 #23; verified
+  on 505c and 505o as a non-root user and from a fresh clone; every bug
+  issue rewritten to lead with those steps and the real output.
