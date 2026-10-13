@@ -1,0 +1,41 @@
+# Bug reproductions
+
+Stand-alone reproductions for the XRouter bugs that `regress/` found
+(GitHub issues #11, #12, #13, #14, #22, #23). They need only a published
+XRouter binary, Python 3.8 or later (standard library only) and a shell.
+No Docker and no root.
+
+```sh
+# 1. Any published Linux build, e.g. from the groups.io Files area
+#    (00-XrLin64-static) or the OARC mirror in versions.json:
+curl -fLo xrlin64v505o-static https://compute.oarc.uk/storage/public/folders/4851/xrouter-505o-amd64
+
+# 2. Start a fresh node from it in ./xrrepro-node (a clean directory with
+#    the config files from node/), and run one reproduction:
+regress/repro/start-node.sh ./xrlin64v505o-static
+python3 regress/repro/repro.py 13
+
+# 3. Stop the node (-9: the node hung by #12 ignores SIGTERM):
+kill -9 $(cat xrrepro-node/xrouter.pid)
+```
+
+Start a fresh node for each reproduction: some leave mail behind, and #12
+hangs the node. The node listens on 127.0.0.1 only: telnet 8023, AGW 8000,
+and one AXUDP port that sends to 127.0.0.1:9999 (the #11 script listens
+there to see what goes out on air).
+
+Each reproduction prints every line it sends (`->`) and receives (`<-`),
+then a verdict line, `BUG PRESENT: ...` (exit 1) or `NOT REPRODUCED: ...`
+(exit 0).
+
+| | Bug | 505c | 505o |
+|---|---|---|---|
+| 11 | AGW `M` (unproto) from an unregistered client is not sent | not reproduced | **present** |
+| 12 | Undecodable compressed (FA) BBS message hangs the node | n/a (no FBB) | **present** |
+| 13 | `R n` shows no body for a forwarded message | **present** | **present** |
+| 14 | No answer to user commands after an FBB SID | not reproduced (disconnects) | **present** |
+| 22 | FBB ASCII forwarding out ends with `/EX`, not Ctrl-Z | n/a (no FBB) | **present** |
+| 23 | MBL forwarding out puts a NUL byte before `/EX` | **present** | not reproduced |
+
+Verified 2026-10-14 with the x86-64 static builds of 505c and 505o, run
+as an unprivileged user.
