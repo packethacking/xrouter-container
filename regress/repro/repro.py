@@ -11,6 +11,9 @@ and receives, then a verdict line:
 Start a fresh node before each one: some leave mail behind, and #12 hangs
 the node.
 
+   2  RHP bind reply is not valid JSON
+   3  RHP send / sendto on a listening socket reply without the socket handle
+   6  scheduled NODES broadcasts go out on the first port only (takes ~3 minutes)
   11  AGW 'M' (unproto) from a client that has not registered a callsign is not sent
   12  an undecodable compressed (FA) BBS message hangs the whole node
   13  R n shows no body for a forwarded message with no blank line after its R: lines
@@ -28,7 +31,7 @@ import sys
 import time
 
 HOST = "127.0.0.1"
-TELNET, AGW, UDP_SNIFF = 8023, 8000, 9999
+TELNET, AGW, UDP_SNIFF, UDP_SNIFF2, RHP = 8023, 8000, 9999, 9998, 9000
 
 
 class Telnet:
@@ -96,6 +99,98 @@ def checksum(lines: list[str]) -> str:
 def verdict(bug: bool, text: str) -> int:
     print(("BUG PRESENT: " if bug else "NOT REPRODUCED: ") + text)
     return 1 if bug else 0
+
+
+# ---------------------------------------------------------------- 2, 3
+
+class Rhp:
+    """RHP: JSON requests, each with a 2-byte big-endian length in front."""
+
+    def __init__(self):
+        self.s = socket.create_connection((HOST, RHP), timeout=5)
+        self.next_id = 1
+
+    def request(self, msg: dict) -> tuple[dict | None, str]:
+        import json
+        msg = {"id": self.next_id, **msg}
+        self.next_id += 1
+        body = json.dumps(msg, separators=(",", ":")).encode()
+        print(f"  -> {body.decode()}")
+        self.s.sendall(struct.pack(">H", len(body)) + body)
+        (n,) = struct.unpack(">H", self._exact(2))
+        raw = self._exact(n).decode("latin-1")
+        print(f"  <- {raw}")
+        try:
+            return json.loads(raw), raw
+        except ValueError:
+            return None, raw
+
+    def _exact(self, n: int) -> bytes:
+        buf = b""
+        while len(buf) < n:
+            d = self.s.recv(n - len(buf))
+            if not d:
+                raise ConnectionError("RHP connection closed")
+            buf += d
+        return buf
+
+
+def repro_2() -> int:
+    r = Rhp()
+    sock, _ = r.request({"type": "socket", "pfam": "ax25", "mode": "stream"})
+    reply, raw = r.request({"type": "bind", "handle": sock["handle"], "local": "PN0RPR-7"})
+    if reply is None:
+        return verdict(True, "the bind reply is not valid JSON")
+    bug = reply.get("type") != "bindReply"
+    return verdict(bug, f"bind reply has type {reply.get('type')!r}, not 'bindReply'" if bug else "valid bindReply")
+
+
+def listening_socket(r: Rhp) -> int:
+    sock, _ = r.request({"type": "socket", "pfam": "ax25", "mode": "stream"})
+    h = sock["handle"]
+    r.request({"type": "bind", "handle": h, "local": "PN0RPR-7"})
+    r.request({"type": "listen", "handle": h, "flags": 0})
+    return h
+
+
+def repro_3() -> int:
+    r = Rhp()
+    h = listening_socket(r)
+    send, _ = r.request({"type": "send", "handle": h, "data": "x"})
+    sendto, _ = r.request({"type": "sendto", "handle": h, "data": "x", "remote": "PN0XX", "port": 1})
+    missing = [n for n, rep in (("send", send), ("sendto", sendto)) if rep is None or rep.get("handle") != h]
+    return verdict(bool(missing), f"{' and '.join(missing)} reply without handle {h}" if missing
+                   else f"both replies carry handle {h}")
+
+
+# ---------------------------------------------------------------- 6
+
+def repro_6() -> int:
+    """Every port gets a NODES broadcast at start-up; with NODESINTERVAL=1
+    the scheduled ones should follow on both ports about every minute."""
+    socks = {}
+    for name, port in (("port 1", UDP_SNIFF), ("port 2", UDP_SNIFF2)):
+        u = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        u.bind((HOST, port))
+        u.settimeout(0.2)
+        socks[name] = u
+    counts = {name: 0 for name in socks}
+    print("Counting NODES broadcasts (UI frames to NODES) on each port for 180 s ...")
+    end = time.time() + 180
+    nodes_dest = bytes(c << 1 for c in b"NODES ")          # AX.25 address field of NODES
+    while time.time() < end:
+        for name, u in socks.items():
+            try:
+                pkt, _ = u.recvfrom(2048)
+            except socket.timeout:
+                continue
+            if pkt[:6] == nodes_dest:
+                counts[name] += 1
+                print(f"  {time.strftime('%H:%M:%S')} NODES on {name}")
+    print(f"  totals: {counts}")
+    bug = counts["port 1"] >= 2 and counts["port 2"] == 0
+    return verdict(bug, "scheduled NODES broadcasts went out on port 1 only" if bug else
+                   f"counts {counts}")
 
 
 # ---------------------------------------------------------------- 11
@@ -271,7 +366,7 @@ def repro_23() -> int:
 
 
 def main() -> int:
-    repros = {"11": repro_11, "12": repro_12, "13": repro_13, "14": repro_14, "22": repro_22, "23": repro_23}
+    repros = {"2": repro_2, "3": repro_3, "6": repro_6, "11": repro_11, "12": repro_12, "13": repro_13, "14": repro_14, "22": repro_22, "23": repro_23}
     if len(sys.argv) != 2 or sys.argv[1] not in repros:
         print(__doc__)
         return 2
