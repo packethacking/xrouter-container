@@ -41,7 +41,7 @@ pick it up. Baseline version: **505c** (the release before 505o).
 - [x] W6 Route selection: test_50_routing (G7), NET/ROM basics test_55_netrom
 - [x] W7 BBS / PMS tests (G9, G10): test_40_pms
 - [x] W8 HTTP / REST / RHP / AGW: test_60_services
-- [ ] W9 Run 505c vs 505o, write FINDINGS, open GitHub issues (first full run done, see Results)
+- [x] W9 Run 505c vs 505o, write FINDINGS, open GitHub issues (#10-#14)
 - [x] W10 CI workflow (.github/workflows/regress.yml; not yet run in Actions)
 
 ## Log
@@ -92,7 +92,8 @@ triaged:
 
 ## Next steps
 
-1. CI run in Actions.
+1. CI run in Actions: this session could not dispatch workflows (403); it
+   runs after the next image publish, or start it from the Actions tab.
 2. G7: ask Danny for `N JOURE` / `R` output (user's call to post).
 3. Reverse FBB forwarding (BBS proposes to partner) needs FWD.SYS set-up.
 4. DEDHOST done (test_70); channel-0 unproto does not transmit on 505c either.
@@ -105,3 +106,7 @@ triaged:
   6 (flaky + DEDHOST uncalibrated). Fixed flakiness (multi-frame NODES,
   state-dependent console tables), DEDHOST on a persistent pty bridge. G7 with
   505o neighbour and locked-route variants: not reproduced.
+- 2026-10-13: final full runs: 505c 233 passed, 6 skipped (FBB tests, no F in
+  SID), 3 xfailed (pre-existing #13, DEDHOST unproto); 505o 232 passed,
+  10 xfailed (#2, #6, #11, #12, #13, #14, DEDHOST unproto), no unexpected
+  failures.
