@@ -1,0 +1,8 @@
+# Known XRouter regressions and bugs the regress suite tracks, by version.
+#
+# Same rules as interop/known-issues.toml: each [[issue]] lists the tests it
+# breaks and the versions it affects, `from` (default: every earlier
+# version) up to and including `until` (default: every later version, for
+# an issue still open). Affected tests are expected failures (XFAIL);
+# strict = true (default) turns an unexpected pass red so a fix is noticed.
+# `issue` links the GitHub issue, `groupsio` the report on groups.io.

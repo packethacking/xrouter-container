@@ -1,0 +1,4 @@
+# IPROUTE.SYS for the regress DUT: 44.128.1.0/24 is on AX.25 port 1 (the
+# probe's station PN0TS is 44.128.1.2), datagram mode.
+ip route add 44.128.1.0/24 * 1 d
+arp add 44.128.1.2 ax25 PN0TS
