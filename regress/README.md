@@ -2,7 +2,7 @@
 
 This suite records how XRouter behaved before 505o, using 505c as the baseline. It then checks any other version against that behaviour. It is lighter than `interop/`: it needs only XRouter (two or three containers of it) and the test process itself, which plays the radio stations over AXUDP. It does not need LinBPQ, XNet or TNN.
 
-It was started to chase the problems reported on the xrouter groups.io list after the 505o release. [PROGRESS.md](PROGRESS.md) maps each report to its tests and says how to resume the work. Open work is tracked as sub-issues of [#10](https://github.com/packethacking/xrouter-container/issues/10). [FINDINGS.md](FINDINGS.md) has the results. [INVENTORY.md](INVENTORY.md) is the feature inventory, drawn from the OARC wiki and the MAN pages, that the tests were planned from.
+It was started to chase the problems reported on the xrouter groups.io list after the 505o release. [PROGRESS.md](PROGRESS.md) maps each report to its tests and says how to resume the work. Open work is tracked as sub-issues of [#10](https://github.com/packethacking/xrouter-container/issues/10). [FINDINGS.md](FINDINGS.md) has the results. [COVERAGE.md](COVERAGE.md) assesses what the suite does and does not cover. [INVENTORY.md](INVENTORY.md) is the feature inventory, drawn from the OARC wiki and the MAN pages, that the tests were planned from.
 
 ## The set-up
 
@@ -39,6 +39,7 @@ All the XRouter containers run `xrr-local/xrouter:<tag>`. That is the published 
 | `test_50_routing` | a direct quality-192 neighbour versus an INP3 path to the same node through the other XRouter: which route is used |
 | `test_55_netrom` | NODES broadcasts, learning from NODES, the neighbour link, L4 circuits both ways, the BBS and service 2 over L4 |
 | `test_51_routing_slow_rf` | the same with a slow (0.8 s) direct link, direct neighbour with and without INP3 |
+| `test_52_routing_bpq` | the same with LinBPQ as the INP3 neighbour (it replaces the neighbour XRouter for the module), plus the direct link failing and recovering |
 | `test_60_services` | HTTP pages, `/exec`, REST (nodes, routes, circuits, mail), RHP (socket, open, bind/listen, close, status), AGW (version, ports, unproto with and without registration) |
 | `test_70_dedhost` | the WA8DED host-mode emulation (on a pty bridged to TCP by socat): host mode, MYCALL, unproto beacons with and without digis, connect |
 | `test_lzhuf_unit` | the LZHUF codec on its own (no docker) |

@@ -170,7 +170,7 @@ def stack(wirelog):
     if not reuse:
         for tag in {VERSION, NBR_VERSION}:
             build_image(tag)
-        sh("docker", "rm", "-f", "xrr-dut", "xrr-nbr", "xrr-ip", "xrr-fbb", "xrr-ded", check=False)
+        sh("docker", "rm", "-f", "xrr-dut", "xrr-nbr", "xrr-ip", "xrr-fbb", "xrr-ded", "xrr-bpq", check=False)
         if sh("docker", "network", "inspect", NET, check=False).returncode != 0:
             sh("docker", "network", "create", "--subnet", SUBNET, NET)
     # Probes first, so nothing XRouter sends at boot is lost.

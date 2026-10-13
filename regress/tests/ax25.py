@@ -288,6 +288,11 @@ class L2Session:
                     self.text += f.info.decode("latin-1")
                 self.va = f.nr
                 self._tx(self._f(0x01 | (self.vr << 5) | (0x10 if f.pf else 0), command=False))
+            elif t == "XID" and f.command:
+                # We are AX.25 v2.0: answer XID with FRMR (W, invalid
+                # control), so a v2.2 caller (LinBPQ) falls back to SABM.
+                info = bytes([f.ctl, (self.vr << 5) | (self.vs << 1), 0x01])
+                self._tx(self._f(U_CODES["FRMR"] | (0x10 if f.pf else 0), command=False, info=info))
             elif t in ("RR", "RNR", "REJ"):
                 self.va = f.nr
                 if f.pf and f.command:

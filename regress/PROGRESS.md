@@ -33,9 +33,10 @@ the session that wrote them may be gone. To pick the work up:
 
 | Issue | What | Blocked on |
 |---|---|---|
-| #15 | G7 route choice: LinBPQ as INP3 neighbour; link reset variant | - |
 | #16 | G11 TUN/44-net: rebuild with the reporter's config | **parked** until VE2PKT volunteers his config (maintainer decision) |
 | #18 | First CI run of the regress workflow | maintainer runs the command in the issue |
+
+Coverage and the gaps worth closing next: `COVERAGE.md`.
 
 ### Bugs found (issues)
 
@@ -75,7 +76,7 @@ the session that wrote them may be gone. To pick the work up:
 | G4 | Tom M0LTE | INPBCINTERVAL ignored | 4374/4378 | interop | known, issue #4 |
 | G5 | Tom M0LTE | own node tt 0 | 4374 | interop | known, issue #5 |
 | G6 | Tom M0LTE | NODES broadcasts on first port only | 4377 | interop | known, issue #6 |
-| G7 | Danny PA2SNK | INP3 route via neighbour preferred over direct 1-hop quality 192 RF route; can't connect to that node any more | 4400/4401 | test_50_routing, test_51_routing_slow_rf | not reproduced: 505o prefers the direct route in every variant: direct neighbour NET/ROM-only or INP3, slow (0.8 s) direct link, sysop-locked q192 route, neighbour XRouter 505c or 505o (505o neighbour sends the node INP3-only, qty 0). Further work: #15 |
+| G7 | Danny PA2SNK | INP3 route via neighbour preferred over direct 1-hop quality 192 RF route; can't connect to that node any more | 4400/4401 | test_50_routing, test_51_routing_slow_rf | not reproduced: 505o prefers the direct route in every variant: direct neighbour NET/ROM-only or INP3, slow (0.8 s) direct link, sysop-locked q192 route, neighbour XRouter 505c or 505o (505o neighbour sends the node INP3-only, qty 0). LinBPQ neighbour and link failure/recovery variants also fine (test_52, #15 closed) |
 | G8 | Danny PA2SNK | Beacon digi (unproto via the node) no longer relayed | 4400 | test_20_digi, test_60 AGW | digipeating and BCAST same as 505c; FOUND: AGW 'M' unproto from an unregistered client is not sent on 505o (505c sends it). Possibly Danny's case. |
 | G9 | Danny PA2SNK | BBS: compressed forward ok, but message retrieval by number disconnects | 4400 | test_40_pms, test_41_fbb | FOUND: R n / n show an EMPTY body for every forwarded message without a blank line after the R: lines (#13; pre-existing for MBL forwarding, but now hits all FBB/compressed forwarded mail). FOUND: undecodable compressed data hangs the whole node (#12). FOUND: after an FBB SID user commands get no answer (#14). Valid B0 compressed and ASCII FBB forwarding work |
 | G10 | Danny PA2SNK | BBS connect text / prompt changed: only header and prompt | 4400 | test_40_pms greetings, test_55 BBS over L4 | not reproduced for plain users (greeting identical apart from SID); likely the FBB-SID path above |
@@ -138,3 +139,7 @@ the session that wrote them may be gone. To pick the work up:
 - 2026-10-14: #21 done (regress/check_known_issues.py, in CI and at collection;
   interop's checker now uses the REST API). #17 done: reverse forwarding
   tests (FA compressed, FB ASCII, MBL, bulletins); found #22, recorded #23.
+- 2026-10-14: #15 done: test_52_routing_bpq (LinBPQ as INP3 neighbour; the
+  probe's L2 now answers XID with FRMR so v2.2 callers fall back to SABM);
+  direct link failure and recovery. G7 still not reproduced. COVERAGE.md
+  written.
