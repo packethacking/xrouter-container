@@ -16,6 +16,7 @@ on:
 
 permissions:
   contents: read
+  issues: read   # check_known_issues.py reads the linked issues
 
 jobs:
   plan:
@@ -25,6 +26,15 @@ jobs:
       tags: ${{ steps.set.outputs.tags }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: check known issues against GitHub issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 regress/check_known_issues.py
+      - name: LZHUF codec unit tests (no docker)
+        run: pip install -q pytest && python3 -m pytest -q -p no:cacheprovider regress/tests/test_lzhuf_unit.py
       - id: set
         env:
           INPUT_TAG: ${{ github.event.inputs.xrouter_tag }}

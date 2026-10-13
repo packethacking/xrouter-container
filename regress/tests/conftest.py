@@ -126,6 +126,11 @@ def known_issues() -> dict[str, dict]:
 
 
 def pytest_collection_modifyitems(config, items):
+    sys.path.insert(0, REGRESS)
+    from check_known_issues import load_entries, structure_errors, suite_test_names
+    problems = structure_errors(load_entries(), suite_test_names())
+    if problems:
+        raise pytest.UsageError("regress/known-issues.toml: " + "; ".join(problems))
     affected = known_issues()
     for item in items:
         name = item.originalname or item.name

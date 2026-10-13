@@ -5,7 +5,10 @@
 # version) up to and including `until` (default: every later version, for
 # an issue still open). Affected tests are expected failures (XFAIL);
 # strict = true (default) turns an unexpected pass red so a fix is noticed.
-# `issue` links the GitHub issue, `groupsio` the report on groups.io.
+# `issue` links the GitHub issue; an entry without one must say why in
+# `no_issue`. When an issue is fixed: set `until` to the last affected
+# version and `fixed_in` to the first fixed one, then close the issue.
+# regress/check_known_issues.py checks all this (offline, and against GitHub).
 
 [[issue]]
 id = "rhp-bind-reply-malformed"
@@ -50,5 +53,6 @@ tests = ["test_user_command_after_fbb_sid_gets_an_answer"]
 
 [[issue]]
 id = "dedhost-no-unproto"
+no_issue = "not established as a bug: same on 505c, may be set-up we have not found"
 title = "DEDHOST emulation: channel 0 unproto info is not transmitted (505c too; may need set-up we have not found)"
 tests = ["test_dedhost_unproto_beacon"]

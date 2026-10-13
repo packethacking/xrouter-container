@@ -11,7 +11,7 @@ Structure (both modes):
   - `fixed_in`, where set, is a later version than `until`;
   - every test an entry names exists in interop/tests.
 
-GitHub (unless --offline), for each linked issue, with `gh issue view`:
+GitHub (unless --offline), for each linked issue, with `gh api` (REST):
   - the issue exists;
   - if it is closed, every entry linking it has `fixed_in`;
   - if it is open, no entry linking it has `fixed_in`.
@@ -103,8 +103,9 @@ def github_errors(entries: list[dict]) -> list[str]:
         if ref.startswith("ISSUE_"):
             errors.append(f"{ids}: issue number not filled in yet ({ref})")
             continue
-        r = subprocess.run(["gh", "issue", "view", ref, "--repo", REPO, "--json", "number,state,title"],
-                           capture_output=True, text=True)
+        # The REST endpoint, not `gh issue view` (GraphQL), so this also runs
+        # where only the REST API is reachable.
+        r = subprocess.run(["gh", "api", f"repos/{REPO}/issues/{ref}"], capture_output=True, text=True)
         if r.returncode != 0:
             errors.append(f"{ids}: issue #{ref} not found in {REPO}: {r.stderr.strip()}")
             continue
