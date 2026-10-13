@@ -25,7 +25,7 @@ chmod +x "$bin"
 if [ -f "$dir/xrouter.pid" ]; then kill -9 "$(cat "$dir/xrouter.pid")" 2>/dev/null || true; sleep 1; fi
 rm -rf "$dir"
 mkdir -p "$dir/LOG" "$dir/PMS" "$dir/CHAT"
-cp "$here/node/XROUTER.CFG" "$here/node/ACCESS.SYS" "$here/node/PASSWORD.SYS" "$dir/"
+cp "$here/node/XROUTER.CFG" "$here/node/ACCESS.SYS" "$dir/"
 cp "$here/node/PMS/DISTRIB.SYS" "$here/node/PMS/FWD.SYS" "$dir/PMS/"
 cd "$dir"
 nohup "$bin" >/dev/null 2>&1 &
