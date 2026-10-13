@@ -68,9 +68,10 @@ docker run --rm --entrypoint /bin/sh ghcr.io/packethacking/xrouter:latest \
 ```
 
 Base layer: `debian:bookworm-slim`. The XRouter binary itself is statically
-linked, so the runtime image carries no shared-library surface to update.
-The exception is 504x, which upstream only released as a dynamically linked
-x86-64 build; its image also carries libasound2 and libx11-6.
+linked. The runtime image adds `iproute2` and `net-tools`, which XRouter
+calls to bring up a TUN interface (see [Caveats](#caveats)). The exception
+is 504x, which upstream only released as a dynamically linked x86-64 build;
+its image also carries libasound2 and libx11-6.
 
 ## Support files
 
@@ -161,6 +162,17 @@ docker run --rm -it \
   the kernel AX.25 stack) wants `--cap-add=NET_RAW`. Telnet on 23 and HTTP on
   80 work via the default `NET_BIND_SERVICE` cap; if you remap to high ports
   you don't need either.
+- **TUN interfaces.** A `TYPE=TUN` interface needs `--cap-add=NET_ADMIN`
+  and `--device /dev/net/tun`. With `IOADDR` set, XRouter configures and
+  brings up the Linux end itself, using the `ip`/`ifconfig` tools in the
+  image.
+- **Adding a TUN (or Ethernet) port changes which IP stack other things use.**
+  Once one exists, AXUDP and AXIP links to non-localhost peers go through
+  XRouter's own IP stack and need routes in `IPROUTE.SYS` (MAN AXUDP-IFACE,
+  AXIP-IFACE), and a TCP service given a single port number (e.g.
+  `TELNETPORT=23`) may stop listening on the container's own address. Give
+  both stacks explicitly (`TELNETPORT=23 23`) and route the docker network
+  with mode `k`, or keep TUN nodes separate.
 - **First-run seeding.** The entrypoint refreshes HELP/MAN/INFO/MISC into
   `/data` on every start (so docs track the binary), but seeds sample
   `*.SYS` / `*.ACL` files with `cp -n` semantics, so your edits are not

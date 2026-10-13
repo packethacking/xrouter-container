@@ -66,6 +66,14 @@ RUN curl -fsSL -o /xrouter "$BIN_URL" \
 
 FROM debian:bookworm-slim AS runtime
 
+# Linux network tools. XRouter shells out to them (ip / ifconfig) to bring
+# up a transient TUN interface from IOADDR (MAN TUN-IFACE); without them
+# the tunnel is created but stays down.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        iproute2 \
+        net-tools \
+    && rm -rf /var/lib/apt/lists/*
+
 # Most XRouter builds are static and need nothing here. A few versions
 # were only released as dynamically linked binaries; their versions.json
 # entry lists the shared libraries they need (e.g. libasound2 libx11-6).
