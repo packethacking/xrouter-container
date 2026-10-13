@@ -23,11 +23,11 @@ pick it up. Baseline version: **505c** (the release before 505o).
 | G4 | Tom M0LTE | INPBCINTERVAL ignored | 4374/4378 | interop | known, issue #4 |
 | G5 | Tom M0LTE | own node tt 0 | 4374 | interop | known, issue #5 |
 | G6 | Tom M0LTE | NODES broadcasts on first port only | 4377 | interop | known, issue #6 |
-| G7 | Danny PA2SNK | INP3 route via neighbour preferred over direct 1-hop quality 192 RF route; can't connect to that node any more | 4400/4401 | test_50_routing | written |
-| G8 | Danny PA2SNK | Beacon digi (unproto via the node) no longer relayed | 4400 | test_20_digi | written |
-| G9 | Danny PA2SNK | BBS: compressed forward ok, but message retrieval by number disconnects | 4400 | test_40_pms (read by number over AX.25 and telnet); compressed forwarding not covered | written |
-| G10 | Danny PA2SNK | BBS connect text / prompt changed: only header and prompt | 4400 | test_40_pms greetings, test_55 BBS over L4 | written |
-| G11 | Jean VE2PKT | AMPRNet (44/8) IP traffic not routed out the TUN interface; can't ping any 44 station; AXUDP/AXTCP fine | 4386-4397 | test_31_ip_gateway (node config/ip) | written |
+| G7 | Danny PA2SNK | INP3 route via neighbour preferred over direct 1-hop quality 192 RF route; can't connect to that node any more | 4400/4401 | test_50_routing | not reproduced (basic case): 505o prefers the direct route; more variants TODO |
+| G8 | Danny PA2SNK | Beacon digi (unproto via the node) no longer relayed | 4400 | test_20_digi, test_60 AGW | digipeating and BCAST same as 505c; FOUND: AGW 'M' unproto from an unregistered client is not sent on 505o (505c sends it). Possibly Danny's case. |
+| G9 | Danny PA2SNK | BBS: compressed forward ok, but message retrieval by number disconnects | 4400 | test_40_pms | plain user read by number fine on 505o. FOUND: 505o SID is now [XR-505o-BFHM$] (adds B, F); after a client sends an FBB SID (tsthost does) 505o silently ignores R n / n / L (505c: '>' then disconnect on R). FBB protocol tests TODO |
+| G10 | Danny PA2SNK | BBS connect text / prompt changed: only header and prompt | 4400 | test_40_pms greetings, test_55 BBS over L4 | not reproduced for plain users (greeting identical apart from SID); likely the FBB-SID path above |
+| G11 | Jean VE2PKT | AMPRNet (44/8) IP traffic not routed out the TUN interface; can't ping any 44 station; AXUDP/AXTCP fine | 4386-4397 | test_31_ip_gateway (node config/ip) | not reproduced: all 13 gateway tests pass on 505o; variants tried by hand (TUN port w/o IPADDRESS, port IP = 44 address, persistent tunnel) identical on 505c/505o. Need Jean's config |
 | G12 | Danny Moss VK7HDM | no 32-bit stretch build | 4371 | n/a (packaging) | not testable |
 | G13 | Danny PA2SNK | systemd service still starts 505c | 4383 | n/a (local setup) | not a bug |
 
@@ -41,8 +41,8 @@ pick it up. Baseline version: **505c** (the release before 505o).
 - [x] W6 Route selection: test_50_routing (G7), NET/ROM basics test_55_netrom
 - [x] W7 BBS / PMS tests (G9, G10): test_40_pms
 - [x] W8 HTTP / REST / RHP / AGW: test_60_services
-- [ ] W9 Run 505c vs 505o, write FINDINGS, open GitHub issues
-- [ ] W10 CI workflow
+- [ ] W9 Run 505c vs 505o, write FINDINGS, open GitHub issues (first full run done, see Results)
+- [x] W10 CI workflow (.github/workflows/regress.yml; not yet run in Actions)
 
 ## Log
 
@@ -63,3 +63,33 @@ pick it up. Baseline version: **505c** (the release before 505o).
   must be green on 505c before its 505o results mean anything). Fixes from
   calibration: BCAST needs the destination in the receiving port's list too;
   CTEXT is only sent for alias connects by default (CTFLAGS 9).
+
+## Results so far (2026-10-13)
+
+505c: all tests pass (it is the baseline). 505o first full run: 16 failures,
+triaged:
+
+- Test harness artefacts, fixed: routing regex vs 505o's new Last-Update
+  column; test_55 had never been calibrated on 505c; telnet closing after B.
+- Accepted changes (golden/505o/console): new GO command in help lists, new
+  STATS fields (Mem blocks .../Out, L4 Conns .../Rej, L3 In Pkts Faulty,
+  Brdcast Pkts Sent), STATS ARP option.
+- Known: RHP bind reply (issue #2).
+- NEW regression: AGW 'M' (send unproto) from a client that has not
+  registered a callsign with 'X' is dropped on 505o; 505c sends it.
+- NEW behaviour change: BBS SID [XR-505o-BFHM$]; FBB-SID sessions go into
+  forwarding mode and ignore user commands.
+- Pre-existing, both versions: empty NODES broadcasts are ignored (a lone
+  node is never learned); TUN with IOADDR needs ip/ifconfig on the host.
+
+## Next steps
+
+1. GitHub issues: tracking issue + AGW regression + SID/FBB behaviour.
+2. FINDINGS.md write-up.
+3. G7 variants: direct neighbour with no time metric (Stt 600) vs INP3 path;
+   neighbour 505o as well; route after link reset.
+4. G9: FBB ASCII forwarding tests (FB/FS/FF/FQ) and reverse forward; maybe
+   B1 compressed (LZHUF) if feasible.
+5. G8: DEDHOST (WA8DED host mode) unproto via XRouter's emulation, which
+   tsthost-style programs use.
+6. Second full 505o run for flakiness; CI run in Actions.
