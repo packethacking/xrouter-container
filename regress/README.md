@@ -34,9 +34,14 @@ All the XRouter containers run `xrr-local/xrouter:<tag>`. That is the published 
 | `test_30_ip_ax25` | IP over AX.25: ping both ways, ARP, forwarding |
 | `test_31_ip_gateway` | the TUN gateway: pings both ways, each IPROUTE form (gateway, no gateway, default, kernel), AX.25 users to 44-net and back, AXIP out and in through the tunnel |
 | `test_40_pms` | the BBS over telnet and over AX.25: greeting and prompt, send, list, read by number, kill, bye |
+| `test_41_fbb` | the BBS as an FBB forwarding partner (throwaway node per test): SID, ASCII (`FB`) and compressed (`FA`, LZHUF via `tests/lzhuf.py`, byte-exact with LinFBB) forwarding in, bad compressed data, reading forwarded mail, user commands after an FBB SID |
+| `test_45_chat_access` | the chat server (CHAT command and AX.25 to CHATCALL, two users), telnet login rules and CTEXT |
 | `test_50_routing` | a direct quality-192 neighbour versus an INP3 path to the same node through the other XRouter: which route is used |
 | `test_55_netrom` | NODES broadcasts, learning from NODES, the neighbour link, L4 circuits both ways, the BBS and service 2 over L4 |
-| `test_60_services` | HTTP pages, `/exec`, REST (nodes, routes, circuits, mail), RHP (socket, open, bind/listen, close, status), AGW (version, ports, unproto) |
+| `test_51_routing_slow_rf` | the same with a slow (0.8 s) direct link, direct neighbour with and without INP3 |
+| `test_60_services` | HTTP pages, `/exec`, REST (nodes, routes, circuits, mail), RHP (socket, open, bind/listen, close, status), AGW (version, ports, unproto with and without registration) |
+| `test_70_dedhost` | the WA8DED host-mode emulation (on a pty bridged to TCP by socat): host mode, MYCALL, unproto beacons with and without digis, connect |
+| `test_lzhuf_unit` | the LZHUF codec on its own (no docker) |
 
 Every test passes on 505c. A failure on another version is either a regression, a deliberate change, or noise in the test. Once someone has looked at it, it goes into `known-issues.toml`. That file uses the same rules as interop's: expected failures for the affected versions, and red again once a version claims a fix.
 

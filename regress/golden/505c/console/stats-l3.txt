@@ -2,10 +2,3 @@ PN#DUT:DUT} NetRom Layer # Stats:
  Known Nodes: #
  Table Free Slots: #
  Nodes Table Peak: #
- Table Overflows: #
- Port: # # #
- L# Frames Heard # # #
- L# Frames Rcvd # # #
- L# Frames Sent # # #
- L# Frames Relayed # # #
-(End of list)

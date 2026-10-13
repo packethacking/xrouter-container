@@ -40,10 +40,10 @@ def test_dut_broadcasts_nodes_on_port1(probe_a):
         got = nodes_from(probe_a)
         time.sleep(1)
     assert got, "no NODES broadcast from the DUT on port 1 in 90 s"
-    f = got[-1]
-    assert f.info[1:7].decode().strip() == "DUT", f.info[1:7]
-    names = {alias for _, alias, _ in entries(f.info)}
-    assert {"DUTAPP", "DUTPMS", "DUTCHT"} <= names, entries(f.info)
+    assert all(f.info[1:7].decode().strip() == "DUT" for f in got), [f.info[1:7] for f in got]
+    # A broadcast with many nodes spans several frames: look at them all.
+    names = {alias for f in got for _, alias, _ in entries(f.info)}
+    assert {"DUTAPP", "DUTPMS", "DUTCHT"} <= names, names
 
 
 def test_dut_broadcasts_nodes_on_port2(stack, probe_b):

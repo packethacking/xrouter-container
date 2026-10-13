@@ -163,7 +163,7 @@ def stack(wirelog):
     if not reuse:
         for tag in {VERSION, NBR_VERSION}:
             build_image(tag)
-        sh("docker", "rm", "-f", "xrr-dut", "xrr-nbr", "xrr-ip", "xrr-fbb", check=False)
+        sh("docker", "rm", "-f", "xrr-dut", "xrr-nbr", "xrr-ip", "xrr-fbb", "xrr-ded", check=False)
         if sh("docker", "network", "inspect", NET, check=False).returncode != 0:
             sh("docker", "network", "create", "--subnet", SUBNET, NET)
     # Probes first, so nothing XRouter sends at boot is lost.
@@ -308,3 +308,64 @@ def fbbnode(stack, wirelog):
         f.write(r.stdout + r.stderr)
     if os.environ.get("XRR_KEEP") != "1":
         sh("docker", "rm", "-f", "xrr-fbb", check=False)
+
+
+# ---------------------------------------------------------------- DEDHOST node
+
+DED_IP, DED_TELNET, DED_TCP = "172.28.78.15", 18028, 18030
+DED_EXTRA = """
+# WA8DED host-mode emulation on a pty (socat links /dev/ttyDED to TCP 7300),
+# for application 2, as a host-mode program such as tsthost would use it.
+APPL=2
+    APPLNAME=DEDAPP
+    APPLCALL=PN0DUT-5
+    APPLALIAS=DEDAPP
+    APPLFLAGS=4
+ENDAPPL
+
+INTERFACE=9
+    TYPE=ASYNC
+    COM=/dev/ttyDED
+    PROTOCOL=DEDHOST
+    APPLNUM=2
+    CHANNELS=4
+    SPEED=9600
+    FLOW=0
+    MTU=256
+ENDINTERFACE
+"""
+
+
+@pytest.fixture(scope="module")
+def dednode(stack, wirelog):
+    """A node like the throwaway BBS one (port 1 to probe E) plus a DEDHOST
+    interface reachable on 127.0.0.1:DED_TCP."""
+    src = fbb_config_dir()
+    dst = os.path.join(OUT, "ded-config")
+    os.makedirs(dst, exist_ok=True)
+    for f in os.listdir(src):
+        text = open(os.path.join(src, f)).read()
+        if f == "XROUTER.CFG":
+            text = text.replace("\nINTERFACE=1\n", DED_EXTRA + "\nINTERFACE=1\n", 1)
+        with open(os.path.join(dst, f), "w") as out:
+            out.write(text)
+    sh("docker", "rm", "-f", "xrr-ded", check=False)
+    args = ["docker", "run", "-d", "--name", "xrr-ded", "--network", NET, "--ip", DED_IP,
+            "--cap-add", "NET_ADMIN", "--cap-add", "NET_RAW", "--device", "/dev/net/tun",
+            "-p", f"127.0.0.1:{DED_TELNET}:23", "-p", f"127.0.0.1:{DED_TCP}:7300"]
+    for f in sorted(os.listdir(dst)):
+        args += ["-v", f"{os.path.join(dst, f)}:/data/{f}:ro"]
+    args += ["--entrypoint", "/bin/sh", image(VERSION), "-c",
+             "socat -d pty,link=/dev/ttyDED,raw,echo=0 tcp-listen:7300,reuseaddr & sleep 1; "
+             "exec /usr/local/bin/xrouter-entrypoint.sh"]
+    sh(*args)
+    wait_booted("xrr-ded")
+    time.sleep(2)
+    probe = Probe("E", ("0.0.0.0", PROBE_E), (DED_IP, 10093), wirelog)
+    yield probe
+    probe.close()
+    r = sh("docker", "logs", "xrr-ded", check=False)
+    with open(os.path.join(OUT, "xrr-ded.log"), "w") as f:
+        f.write(r.stdout + r.stderr)
+    if os.environ.get("XRR_KEEP") != "1":
+        sh("docker", "rm", "-f", "xrr-ded", check=False)
