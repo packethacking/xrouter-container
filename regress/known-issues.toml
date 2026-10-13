@@ -56,3 +56,18 @@ id = "dedhost-no-unproto"
 no_issue = "not established as a bug: same on 505c, may be set-up we have not found"
 title = "DEDHOST emulation: channel 0 unproto info is not transmitted (505c too; may need set-up we have not found)"
 tests = ["test_dedhost_unproto_beacon"]
+
+[[issue]]
+id = "fbb-ascii-out-no-ctrl-z"
+issue = "https://github.com/packethacking/xrouter-container/issues/22"
+title = "FBB ASCII forwarding out (FB) ends messages with /EX instead of Ctrl-Z"
+from = "505o"
+tests = ["test_fbb_reverse_forward_ascii_ends_with_ctrl_z"]
+
+[[issue]]
+id = "mbl-out-stray-nul"
+issue = "https://github.com/packethacking/xrouter-container/issues/23"
+title = "MBL forwarding out puts a NUL byte before /EX"
+until = "505c"
+fixed_in = "505o"
+tests = ["test_mbl_reverse_forward"]

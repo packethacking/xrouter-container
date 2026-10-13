@@ -80,8 +80,10 @@ def start_node(name: str, ip: str, tag: str, confdir: str, ports: dict[int, int]
             "--cap-add", "NET_ADMIN", "--cap-add", "NET_RAW", "--device", "/dev/net/tun"]
     for host_port, cport in ports.items():
         args += ["-p", f"127.0.0.1:{host_port}:{cport}"]
-    for f in sorted(os.listdir(confdir)):
-        args += ["-v", f"{os.path.join(confdir, f)}:/data/{f}:ro"]
+    for root, _, files in sorted(os.walk(confdir)):
+        for f in sorted(files):
+            rel = os.path.relpath(os.path.join(root, f), confdir)
+            args += ["-v", f"{os.path.join(root, f)}:/data/{rel}:ro"]
     args.append(image(tag))
     sh(*args)
 
@@ -296,6 +298,14 @@ def fbb_config_dir() -> str:
             text = text.replace("UDPREMOTE=30001", f"UDPREMOTE={PROBE_E}")
         with open(os.path.join(dst, f), "w") as out:
             out.write(text)
+    # PN0FWD is a forwarding partner: mail @PN0FWD is queued for it
+    # (DISTRIB.SYS), and it may collect it any time; no connect script, so
+    # the BBS never calls out and the partner's FF collects (FWD.SYS).
+    os.makedirs(os.path.join(dst, "PMS"), exist_ok=True)
+    with open(os.path.join(dst, "PMS", "DISTRIB.SYS"), "w") as out:
+        out.write("# <type> <to> <at> <via>\nP * PN0FWD PN0FWD\nB * WW PN0FWD\n")
+    with open(os.path.join(dst, "PMS", "FWD.SYS"), "w") as out:
+        out.write("@PN0FWD F\n0-6\n0-23\n------\n")
     return dst
 
 

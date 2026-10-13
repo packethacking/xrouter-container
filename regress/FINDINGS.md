@@ -10,6 +10,8 @@ These are the results of the regress suite. The baseline is 505c and the version
 | R2 | RHP bind reply malformed | ok | fails | #2 (already known, fixed upstream) |
 | R3 | An FBB compressed (FA) message XRouter cannot decode hangs the whole node at 100% CPU, telnet dead | n/a | **hangs** | #12 |
 | R4 | After a client sends an FBB SID, user commands get no answer at all | `>` then disconnect | **silence** | #14 |
+| R5 | FBB ASCII forwarding *out* (`FB`) ends messages with `/EX`, not Ctrl-Z, so a real FBB partner never sees the end | n/a | **wrong** | #22 |
+| F1 | MBL forwarding out puts a NUL byte before `/EX` | stray NUL | fixed | #23 |
 | B1 | `R n` / `n` show an empty body for a forwarded message with no blank line after its `R:` lines | empty | empty, and now every FBB/compressed forwarded message | #13 |
 | C1 | BBS SID advertises FBB and compressed forwarding | `[XR-505c-HM$]` | `[XR-505o-BFHM$]` | n/a (new feature) |
 | C2 | A BBS session that sends an FBB SID becomes an FBB forwarding session | `>` prompt, then disconnects on `R n` | no prompt; `R n`, `n` and `L` are ignored silently; `FF` gives `FQ` and disconnect | see G9 |
@@ -72,6 +74,10 @@ Issue: https://github.com/packethacking/xrouter-container/issues/13
 `R n` and a bare `n` (read without routing headers) skip everything up to the first blank line of a forwarded message. Forwarded FBB messages run straight from their `R:` lines into the body, so the reader sees only the header block. `RH n` shows everything, and the stored file is intact. 505c does the same for MBL-forwarded mail, so this is not new code. It is new exposure: on 505o, every message that arrives by the new FBB or compressed forwarding reads as empty. That is very likely PA2SNK's "msg retrieval does not work correctly". Tests: `test_read_forwarded_message_shows_body[ascii|compressed]`, `test_read_mbl_forwarded_message_shows_body`.
 
 FBB ASCII forwarding into the 505o BBS works: proposal `FB P PN0FWD PN0DUT PN0DUT 4711_PN0FWD 40`, `F> <checksum>`, the BBS answers `FS +`, takes the message, sends `FF`, and answers our `FF` with `FQ`. The message is stored and listed.
+
+## Forwarding out (reverse forwarding)
+
+The throwaway BBS has a forwarding partner, PN0FWD (PMS/DISTRIB.SYS `P * PN0FWD PN0FWD` and `B * WW PN0FWD`; PMS/FWD.SYS `@PN0FWD F`). When the partner connects and sends `FF`, 505o proposes the queued personal mail as `FA` (with `B` in the partner's SID) or `FB` (without). Bulletins @WW are proposed as `FA B ... WW <category>`; categories are cut to 6 characters. The compressed data decodes correctly with our LinFBB-compatible codec, so LZHUF interoperates in both directions. The ASCII `FB` message, though, ends with `/EX` where FBB uses Ctrl-Z (R5, #22). MBL reverse forwarding (`F>`) works on both versions; 505c added a stray NUL before `/EX` (#23, fixed in 505o). XRouter forwards with RFC 822 style headers (Date, From, To, Subject, Message-ID) and a blank line after its `R:` line. That is why messages XRouter forwards itself read fine with `R n` (B1).
 
 ## C4 to C6. Console output changes accepted as deliberate
 

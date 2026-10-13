@@ -35,9 +35,7 @@ the session that wrote them may be gone. To pick the work up:
 |---|---|---|
 | #15 | G7 route choice: LinBPQ as INP3 neighbour; link reset variant | - |
 | #16 | G11 TUN/44-net: rebuild with the reporter's config | **parked** until VE2PKT volunteers his config (maintainer decision) |
-| #17 | Reverse FBB forwarding tests (FWD.SYS set-up) | - |
 | #18 | First CI run of the regress workflow | maintainer runs the command in the issue |
-| #21 | Link checker for regress/known-issues.toml | - |
 
 ### Bugs found (issues)
 
@@ -47,6 +45,8 @@ the session that wrote them may be gone. To pick the work up:
 | #12 | Undecodable compressed FBB message hangs the whole node | 505o |
 | #13 | `R n` / `n` empty body for forwarded mail | all (newly exposed by 505o's FBB forwarding) |
 | #14 | No answer to user commands after an FBB SID | 505o |
+| #22 | FBB ASCII forwarding out ends with /EX, not Ctrl-Z | 505o |
+| #23 | MBL forwarding out: stray NUL before /EX | 505c (fixed in 505o) |
 | #2, #6 | Known from interop: RHP bind reply; NODES only on first port | |
 
 ### State of the suite (last full runs, 2026-10-13)
@@ -135,3 +135,6 @@ the session that wrote them may be gone. To pick the work up:
   AXIP, AXUDP. Decisions: #16 parked, #19 done (image now has iproute2 and
   net-tools; build-and-publish rebuilds all versions), #20 closed (reports
   stay as GitHub issues), #18 command posted for the maintainer.
+- 2026-10-14: #21 done (regress/check_known_issues.py, in CI and at collection;
+  interop's checker now uses the REST API). #17 done: reverse forwarding
+  tests (FA compressed, FB ASCII, MBL, bulletins); found #22, recorded #23.

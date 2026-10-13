@@ -195,3 +195,105 @@ def test_read_mbl_forwarded_message_shows_body(fbbnode):
     s.disconnect()
     out = list_as_sysop("R 1")
     assert "mbl body line" in out, f"R 1 shows no body:\n{out}"
+
+
+# ---------------------------------------------------------------- reverse forwarding
+
+def queue_mail_for_partner(probe) -> None:
+    """A user leaves personal mail @PN0FWD; DISTRIB.SYS (fbb_config_dir)
+    queues it for the partner PN0FWD."""
+    u = L2Session(probe, "PN0USR", PMSCALL)
+    assert u.connect()
+    u.read(2.5, 10)
+    u.line("SP PN0BOB @ PN0FWD")
+    u.read(2, 5)
+    u.line("rev subject")
+    u.read(2, 5)
+    u.line("reverse body line")
+    u.line("/EX")
+    out = u.read(3, 10)
+    assert "saved" in out, out
+    u.disconnect()
+
+
+def test_fbb_reverse_forward_compressed(fbbnode):
+    """The partner sends FF; the BBS proposes the queued mail as FA (B0) and
+    sends it compressed. The text decodes and carries the body."""
+    from lzhuf import decode, parse_fbb_blocks
+    queue_mail_for_partner(fbbnode)
+    s, sid, _ = connect(fbbnode)
+    needs_fbb(sid)
+    s.line("[TST-1.0-BFHM$]")
+    s.read(2, 5)
+    s.line("FF")
+    out = s.read(4, 10)
+    props = [l for l in out.splitlines() if l.startswith(("FA", "FB"))]
+    assert props and props[0].startswith("FA P PN0USR PN0FWD PN0BOB "), f"no FA proposal after FF:\n{out}"
+    s.line("FS +")
+    raw = s.read_raw(5, 15)
+    title, offset, payload, ok = parse_fbb_blocks(raw)
+    assert ok and title == "rev subject", (title, ok, raw[:80])
+    text = decode(payload)
+    assert b"reverse body line" in text, text
+    s.line("FF")
+    assert "FQ" in s.read(3, 10)
+
+
+def test_fbb_reverse_forward_ascii_ends_with_ctrl_z(fbbnode):
+    """Without B in the partner's SID the BBS proposes FB and sends plain text,
+    which in the FBB protocol ends with Ctrl-Z (as the BBS itself expects on
+    receipt), not /EX."""
+    queue_mail_for_partner(fbbnode)
+    s, sid, _ = connect(fbbnode)
+    needs_fbb(sid)
+    s.line("[TST-1.0-FHM$]")
+    s.read(2, 5)
+    s.line("FF")
+    out = s.read(4, 10)
+    assert any(l.startswith("FB P PN0USR PN0FWD PN0BOB ") for l in out.splitlines()), out
+    s.line("FS +")
+    raw = s.read_raw(5, 15)
+    s.disconnect()
+    assert b"reverse body line" in raw, raw
+    assert b"\x1a" in raw, f"FBB ASCII message not ended with Ctrl-Z: {raw[-60:]!r}"
+
+
+def test_mbl_reverse_forward(fbbnode):
+    """MBL/RLI reverse forwarding (SID without F, partner sends F>): the BBS
+    sends an S command, then the message, ending /EX, with no stray bytes."""
+    queue_mail_for_partner(fbbnode)
+    s, _, _ = connect(fbbnode)
+    s.line("[TST-1.0-HM$]")
+    s.read(2, 5)
+    s.line("F>")
+    out = s.read(4, 10)
+    assert out.strip().startswith("SP PN0BOB @ PN0FWD < PN0USR $"), out
+    s.line("OK")
+    msg = s.read_raw(4, 15)
+    s.disconnect()
+    assert b"reverse body line" in msg and msg.rstrip().endswith(b"/EX"), msg
+    assert b"\x00" not in msg, f"NUL byte in the forwarded text: {msg!r}"
+
+
+def test_fbb_reverse_forward_bulletin(fbbnode):
+    """A bulletin @WW is queued for the partner (DISTRIB.SYS `B * WW PN0FWD`)
+    and proposed as FA B ... WW <category>. Categories are cut to 6 chars."""
+    u = L2Session(fbbnode, "PN0USR", PMSCALL)
+    assert u.connect()
+    u.read(2.5, 10)
+    u.line("SB FWDTEST @ WW")
+    u.read(2, 5)
+    u.line("bulletin subject")
+    u.read(2, 5)
+    u.line("bulletin body")
+    u.line("/EX")
+    assert "saved" in u.read(3, 10)
+    u.disconnect()
+    s, sid, _ = connect(fbbnode)
+    needs_fbb(sid)
+    s.line("[TST-1.0-BFHM$]")
+    s.read(2, 5)
+    s.line("FF")
+    out = s.read(4, 10)
+    s.disconnect()
+    assert re.search(r"^FA B PN0USR WW FWDTES \S+ \d+", out, re.M), out
