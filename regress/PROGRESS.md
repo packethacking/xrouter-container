@@ -19,7 +19,11 @@ the session that wrote them may be gone. To pick the work up:
    harness break, or (on a new XRouter version) a behaviour change.
 4. After each meaningful step: update the tables below and the Log, commit,
    push. Bugs go in their own issue (XRouter bugs: label `xrouter-bug`) and
-   in `known-issues.toml`; findings go in `FINDINGS.md`.
+   in `known-issues.toml`; findings go in `FINDINGS.md`. Maintainer
+   decision: XRouter bug reports stay as GitHub issues here; do not post
+   them to groups.io (#20).
+6. Check groups.io (group `xrouter`) for new reports at the start of each
+   session; add them to the reports table below.
 5. A new XRouter version: run the suite on it; triage every failure as
    regression (issue + known-issues entry), deliberate change (accepted
    console output: `XRR_ACCEPT=<id>,... regress/run.sh <ver> -- -k console`),
@@ -30,11 +34,9 @@ the session that wrote them may be gone. To pick the work up:
 | Issue | What | Blocked on |
 |---|---|---|
 | #15 | G7 route choice: LinBPQ as INP3 neighbour; link reset variant | - |
-| #16 | G11 TUN/44-net: rebuild with the reporter's config | VE2PKT's config (user's call to ask) |
+| #16 | G11 TUN/44-net: rebuild with the reporter's config | **parked** until VE2PKT volunteers his config (maintainer decision) |
 | #17 | Reverse FBB forwarding tests (FWD.SYS set-up) | - |
-| #18 | First CI run of the regress workflow | someone with Actions access |
-| #19 | Image: TUN with IOADDR needs ip/ifconfig | maintainer decision |
-| #20 | Report #11-#14 upstream | maintainer decision |
+| #18 | First CI run of the regress workflow | maintainer runs the command in the issue |
 | #21 | Link checker for regress/known-issues.toml | - |
 
 ### Bugs found (issues)
@@ -128,3 +130,8 @@ the session that wrote them may be gone. To pick the work up:
   failures.
 - 2026-10-13: tracking reorganised for resumability: open work moved into
   sub-issues #15-#21 of #10; this file now starts with "Resume here".
+- 2026-10-14: groups.io follow-ups: 4404 VE2PKT still no 44.x on 505o, asks
+  about 505m; 4405 PA2SNK nothing new; 4406 ZL2BAU 505o fine for 44-net,
+  AXIP, AXUDP. Decisions: #16 parked, #19 done (image now has iproute2 and
+  net-tools; build-and-publish rebuilds all versions), #20 closed (reports
+  stay as GitHub issues), #18 command posted for the maintainer.
