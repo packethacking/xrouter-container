@@ -7,6 +7,6 @@ ARG XROUTER_IMAGE=ghcr.io/packethacking/xrouter:latest
 FROM ${XROUTER_IMAGE}
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-      iproute2 net-tools iputils-ping tcpdump procps python3-minimal socat \
+      iproute2 net-tools iputils-ping tcpdump procps python3 \
  && rm -rf /var/lib/apt/lists/*
-COPY udpbridge.py axip_send.py /usr/local/bin/
+COPY udpbridge.py axip_send.py ptybridge.py /usr/local/bin/

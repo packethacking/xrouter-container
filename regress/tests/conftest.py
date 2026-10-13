@@ -314,7 +314,7 @@ def fbbnode(stack, wirelog):
 
 DED_IP, DED_TELNET, DED_TCP = "172.28.78.15", 18028, 18030
 DED_EXTRA = """
-# WA8DED host-mode emulation on a pty (socat links /dev/ttyDED to TCP 7300),
+# WA8DED host-mode emulation on a pty (image/ptybridge.py links /dev/ttyDED to TCP 7300),
 # for application 2, as a host-mode program such as tsthost would use it.
 APPL=2
     APPLNAME=DEDAPP
@@ -356,7 +356,7 @@ def dednode(stack, wirelog):
     for f in sorted(os.listdir(dst)):
         args += ["-v", f"{os.path.join(dst, f)}:/data/{f}:ro"]
     args += ["--entrypoint", "/bin/sh", image(VERSION), "-c",
-             "socat -d pty,link=/dev/ttyDED,raw,echo=0 tcp-listen:7300,reuseaddr & sleep 1; "
+             "python3 /usr/local/bin/ptybridge.py /dev/ttyDED 7300 & sleep 1; "
              "exec /usr/local/bin/xrouter-entrypoint.sh"]
     sh(*args)
     wait_booted("xrr-ded")

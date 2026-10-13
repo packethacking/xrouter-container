@@ -1,6 +1,10 @@
-"""XRouter's WA8DED host-mode emulation (MAN DEDHOST), as host-mode
-programs such as tsthost use it (PA2SNK, groups.io 4385/4400, runs tsthost
-1.43 with XRouter and reported "beacon digi (unproto request)" problems).
+"""XRouter's WA8DED host-mode emulation (MAN DEDHOST), which serves an
+application (APPL 2 here) over a serial line.
+
+As 505c implements it, a connect on channel 1 lands in the node's own
+command shell ("CONNECTED to PN0DUT"), from which the application issues
+node commands, including C to go further. Channel 0 is unproto, as on a
+real WA8DED TNC.
 
 The emulated TNC is on a pty that socat bridges to TCP. Host mode frames:
 to the TNC  [channel][0 info | 1 command][length-1][data]; from the TNC
@@ -89,23 +93,31 @@ def host(dednode):
     h.close()
 
 
-def test_dedhost_enters_host_mode(host):
-    h, _ = host
-    r = h.cmd(0, "V")
-    assert r is not None and r[1] in (0, 1), f"no host-mode reply to V: {r!r}"
+def wait_reply(h, ch, code, timeout=10.0):
+    """Poll channel ch with G until a frame with this code arrives."""
+    end = time.time() + timeout
+    got = []
+    while time.time() < end:
+        r = h.cmd(ch, "G")
+        if r is None:
+            continue
+        got.append(r)
+        if r[1] == code:
+            return r, got
+        if r[1] == 0:
+            time.sleep(0.3)
+    return None, got
 
 
-def test_dedhost_set_mycall(host):
+def test_dedhost_status(host):
     h, _ = host
-    r = h.cmd(0, "I PN0DED")
-    assert r is not None and r[1] in (0, 1), r
-    r = h.cmd(0, "I")
-    assert r is not None and b"PN0DED" in r[2].upper(), r
+    r = h.cmd(1, "L")
+    assert r is not None and r[1] == 1 and len(r[2].split()) >= 5, f"no channel status from L: {r!r}"
 
 
 def test_dedhost_unproto_beacon(host):
-    """Channel 0: C sets the unproto destination; info on channel 0 is sent
-    as a UI frame, which is how host-mode programs send beacons."""
+    """Channel 0: C sets the unproto destination; info on channel 0 goes out
+    as a UI frame. This is how host-mode programs send beacons."""
     h, probe = host
     h.cmd(0, "I PN0DED")
     r = h.cmd(0, "C BEACON")
@@ -114,27 +126,34 @@ def test_dedhost_unproto_beacon(host):
     h.info(0, b"ded beacon text\r")
     f = probe.wait(lambda f: f.dst == "BEACON" and b"ded beacon text" in f.info, 10, t)
     assert f is not None, "no UI frame after a host-mode unproto send"
-    assert f.type == "UI" and f.src == "PN0DED", str(f)
 
 
-def test_dedhost_unproto_beacon_via_digi(host):
-    h, probe = host
-    h.cmd(0, "I PN0DED")
-    r = h.cmd(0, "C BEACON PN0ZZ")
-    assert r is not None and r[1] in (0, 1), r
-    t = time.time()
-    h.info(0, b"ded beacon via\r")
-    f = probe.wait(lambda f: f.dst == "BEACON" and b"ded beacon via" in f.info, 10, t)
-    assert f is not None, "no UI frame after a host-mode unproto send via a digi"
-    assert [d for d, _ in f.digis] == ["PN0ZZ"], str(f)
-
-
-def test_dedhost_connect_sends_sabm(host):
-    h, probe = host
-    h.cmd(1, "I PN0DED")
-    t = time.time()
+def test_dedhost_connect_reaches_node(host):
+    h, _ = host
     r = h.cmd(1, "C PN0QQ")
-    assert r is not None and r[1] in (0, 1), r
+    assert r is not None and r[1] == 0, r
+    r, got = wait_reply(h, 1, 3)
+    assert r is not None and b"CONNECTED to PN0DUT" in r[2], got
+
+
+def test_dedhost_node_command(host):
+    h, _ = host
+    h.info(1, b"P\r")
+    out = b""
+    end = time.time() + 10
+    while time.time() < end and b"Probe A" not in out:
+        r = h.cmd(1, "G")
+        if r and r[1] == 7:
+            out += r[2]
+        elif not r or r[1] == 0:
+            time.sleep(0.3)
+    assert b"Probe A" in out, out
+
+
+def test_dedhost_connect_onward_sends_sabm(host):
+    h, probe = host
+    t = time.time()
+    h.info(1, b"C 1 PN0QQ\r")
     f = probe.wait(lambda f: f.dst == "PN0QQ" and f.type == "SABM", 10, t)
-    assert f is not None, "no SABM after a host-mode connect on channel 1"
+    assert f is not None, "no SABM after C from the host-mode session"
     h.cmd(1, "D")

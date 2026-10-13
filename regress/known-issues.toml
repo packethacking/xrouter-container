@@ -47,3 +47,8 @@ issue = "https://github.com/packethacking/xrouter-container/issues/14"
 title = "After an FBB SID, user commands get no answer at all"
 from = "505o"
 tests = ["test_user_command_after_fbb_sid_gets_an_answer"]
+
+[[issue]]
+id = "dedhost-no-unproto"
+title = "DEDHOST emulation: channel 0 unproto info is not transmitted (505c too; may need set-up we have not found)"
+tests = ["test_dedhost_unproto_beacon"]
