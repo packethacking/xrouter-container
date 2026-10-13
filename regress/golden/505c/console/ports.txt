@@ -1,0 +1,4 @@
+PN#DUT:DUT} Ports:
+ # Probe A
+ # Probe B
+ # Neighbour XRouter

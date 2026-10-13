@@ -1,0 +1,1 @@
+PN#DUT:DUT} Syntax: CMD <add | drop | list> [cmd [args]]

@@ -1,0 +1,3 @@
+PN#DUT:DUT} Dx list:
+Port Callsign Dist Dir Date Time Frames Position Via
+(End of list)

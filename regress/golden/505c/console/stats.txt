@@ -1,0 +1,19 @@
+PN#DUT:DUT} Stats:
+Time active (mins): # (# days # hours # min # sec)
+Overruns: #
+Memory blocks: Min/Cur/Max # # #
+Nodes: Cur/Max/Free/Poss # # # #
+Total bytes sent/rcvd: # #
+Ccts/MaxCcts L#/L#/L#/TCP: # # # #
+HTTP Rqst/Srvd/Bytes/Prxyd: # # # #
+IP Heard/Reasm/Rcvd/Routed: # # # #
+IP Bad Hdr/Chksum/Version: # # #
+IP Sent/Frag/Unsent/Total: # # # #
+IP Bytes Hrd/Rcvd/Sent/Routed: # # # #
+L# Connects Tried/Made/Rcvd: # # #
+L# total frames Sent/Rcvd: # #
+L# Info Snt/Rcvd/Resent/Reseq: # # # #
+L# Choke Snt/Rxd RSET Snt/Rxd: # # # #
+L# Timeouts/Failures: # #
+L# Frames Hrd/Rcvd/Sent/Rlyd: # # # #
+Use STATS * to display full stats

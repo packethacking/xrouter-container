@@ -1,0 +1,11 @@
+PN#DUT:DUT} Manual:
+NODES(#) XROUTER REFERENCE MANUAL #
+COMMAND
+ NODES -- Display / Modify the Nodes table.
+SYNOPSIS
+ N[odes] [nodecall]
+ N[odes] +
+ N[odes] *
+ N[odes] > <qual>
+ N[odes] < <qual>
+ N[odes] A[dd] <call>[:alias] <via_call> <port> <qual> [!]

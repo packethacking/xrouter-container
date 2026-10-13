@@ -1,0 +1,3 @@
+PN#DUT:DUT} Current sessions:
+Sess# Start-time Idle Type Lnk User
+ # # # #s Cmd TCP (pn#usr)

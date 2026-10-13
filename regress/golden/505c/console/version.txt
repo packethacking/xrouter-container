@@ -1,0 +1,2 @@
+PN#DUT:DUT} XrLin multi-protocol router, #-bit v <VER> [static] (<DATE>)
+Copyright (c) Paula G#PZT #-# All rights reserved

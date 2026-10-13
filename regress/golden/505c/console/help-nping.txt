@@ -1,0 +1,1 @@
+PN#DUT:DUT} Syntax: NP[ing] <nodecall> [len [sec]]

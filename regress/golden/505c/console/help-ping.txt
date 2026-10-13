@@ -1,0 +1,1 @@
+PN#DUT:DUT} Syntax: PI[ng] <ipaddr | hostname> [bytes [secs]]

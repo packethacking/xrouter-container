@@ -1,0 +1,3 @@
+PN#DUT:DUT} Help:
+Use "?" to list commands and brief syntax, or "H" for detailed help
+Use "H *" to list topics

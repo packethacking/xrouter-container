@@ -1,0 +1,12 @@
+PN#DUT:DUT} Full command list:
+ ? arp amsg ansi aprs axroutes axtest
+ bye BLOG connect chat cq cx date
+ dx echo finger gping gtracert help host
+ info iproutes j links lang l#links listen
+ mheard nodes nftp nping nrr ntracert ports
+ ping PMS quit routes stats send telnet
+ time tracert ttylink users version WALL watch
+ wx yell
+ BBS DUTAPP
+Use "? **" for detailed list
+Use "? <cmd>" for specific help on <cmd>

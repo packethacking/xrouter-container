@@ -1,0 +1,4 @@
+PN#DUT:DUT} IP Routes:
+Destination Len Gateway Port Mode Metric Timer Flg
+# # # # d # #
+(End of list)

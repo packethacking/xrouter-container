@@ -1,0 +1,1 @@
+PN#DUT:DUT} Syntax: F[inger] <user | user@host | @host>

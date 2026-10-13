@@ -1,0 +1,4 @@
+PN#DUT:DUT} Interfaces:
+Num Type Prtcl MTU Description
+ # axudp axudp #
+(End of list)

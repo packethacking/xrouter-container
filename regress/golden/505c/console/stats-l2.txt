@@ -1,0 +1,26 @@
+PN#DUT:DUT} L# Stats:
+ Port: # # #
+L# Frames heard # # #
+L# Frames rcvd # # #
+L# Resequenced # # #
+L# Reassembled # # #
+L# Info Received # # #
+L# T# Timeouts # # #
+L# Digipeated # # #
+L# Info Sent # # #
+L# Info re-sent # # #
+L# Fragmented # # #
+L# Frames Sent # # #
+L# REJ Received # # #
+L# Rx out of seq # # #
+L# Frames Corrupt # # #
+L# FRMRs Sent # # #
+L# FRMRs Rcvd # # #
+Bytes Rcvd # # #
+Bytes Sent # # #
+Poll Timeouts # # #
+Tx/Rx Active% # # #
+Tx/Rx Peak% # # #
+Tx/Rx Mean% # # #
+MaxElapsed=#
+(End of list)

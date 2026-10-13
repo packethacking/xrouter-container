@@ -23,11 +23,11 @@ pick it up. Baseline version: **505c** (the release before 505o).
 | G4 | Tom M0LTE | INPBCINTERVAL ignored | 4374/4378 | interop | known, issue #4 |
 | G5 | Tom M0LTE | own node tt 0 | 4374 | interop | known, issue #5 |
 | G6 | Tom M0LTE | NODES broadcasts on first port only | 4377 | interop | known, issue #6 |
-| G7 | Danny PA2SNK | INP3 route via neighbour preferred over direct 1-hop quality 192 RF route; can't connect to that node any more | 4400/4401 | TODO | todo |
-| G8 | Danny PA2SNK | Beacon digi (unproto via the node) no longer relayed | 4400 | TODO | todo |
-| G9 | Danny PA2SNK | BBS: compressed forward ok, but message retrieval by number disconnects | 4400 | TODO | todo |
-| G10 | Danny PA2SNK | BBS connect text / prompt changed: only header and prompt | 4400 | TODO | todo |
-| G11 | Jean VE2PKT | AMPRNet (44/8) IP traffic not routed out the TUN interface; can't ping any 44 station; AXUDP/AXTCP fine | 4386-4397 | TODO | todo |
+| G7 | Danny PA2SNK | INP3 route via neighbour preferred over direct 1-hop quality 192 RF route; can't connect to that node any more | 4400/4401 | test_50_routing | written |
+| G8 | Danny PA2SNK | Beacon digi (unproto via the node) no longer relayed | 4400 | test_20_digi | written |
+| G9 | Danny PA2SNK | BBS: compressed forward ok, but message retrieval by number disconnects | 4400 | test_40_pms (read by number over AX.25 and telnet); compressed forwarding not covered | written |
+| G10 | Danny PA2SNK | BBS connect text / prompt changed: only header and prompt | 4400 | test_40_pms greetings, test_55 BBS over L4 | written |
+| G11 | Jean VE2PKT | AMPRNet (44/8) IP traffic not routed out the TUN interface; can't ping any 44 station; AXUDP/AXTCP fine | 4386-4397 | test_31_ip_gateway (node config/ip) | written |
 | G12 | Danny Moss VK7HDM | no 32-bit stretch build | 4371 | n/a (packaging) | not testable |
 | G13 | Danny PA2SNK | systemd service still starts 505c | 4383 | n/a (local setup) | not a bug |
 
@@ -35,12 +35,12 @@ pick it up. Baseline version: **505c** (the release before 505o).
 
 - [x] W1 Feature inventory from the OARC wiki (commands, CFG directives, services): regress/INVENTORY.md
 - [x] W2 Harness: XRouter container + Python AXUDP probe (raw AX.25 frames, minimal L2), telnet console helper (tests/conftest.py, ax25.py, xrconsole.py)
-- [ ] W3 Console command snapshot tests (505c golden vs 505o)
-- [ ] W4 Digipeating tests (G8)
-- [ ] W5 IP routing tests: IP over AX.25, TUN (G11)
-- [ ] W6 Route selection: direct NODES route vs INP3 (G7)
-- [ ] W7 BBS / PMS tests (G9, G10)
-- [ ] W8 HTTP / API / RHP behaviour
+- [x] W3 Console command snapshot tests (505c golden vs 505o): test_10_console, golden/505c/console
+- [x] W4 Digipeating tests (G8): test_20_digi
+- [x] W5 IP routing tests: test_30_ip_ax25, test_31_ip_gateway (G11)
+- [x] W6 Route selection: test_50_routing (G7), NET/ROM basics test_55_netrom
+- [x] W7 BBS / PMS tests (G9, G10): test_40_pms
+- [x] W8 HTTP / REST / RHP / AGW: test_60_services
 - [ ] W9 Run 505c vs 505o, write FINDINGS, open GitHub issues
 - [ ] W10 CI workflow
 
@@ -59,3 +59,7 @@ pick it up. Baseline version: **505c** (the release before 505o).
   * Quick manual check: XRouter PING over TUN and AXIP transmit over TUN to a
     44.x partner behave the same on 505c and 505o (basic case). G11 needs
     more variants (receive path, AX.25 -> TUN forwarding, route forms).
+- 2026-10-13: tests written for every area; calibrating on 505c (the suite
+  must be green on 505c before its 505o results mean anything). Fixes from
+  calibration: BCAST needs the destination in the receiving port's list too;
+  CTEXT is only sent for alias connects by default (CTFLAGS 9).

@@ -1,0 +1,6 @@
+PN#DUT:DUT} Basic commands:
+ <C>onnect <B>ye <I>nfo <M>heard <N>odes <P>orts <R>outes <U>sers <V>ersion
+ BBS DUTAPP
+Use "? *" for full list
+Use "? **" for detailed list
+Use "? <cmd>" for specific help on <cmd>

@@ -1,0 +1,4 @@
+PN#DUT:DUT} ARP:
+Host type Time Q Hw Address
+# AX# # # PN#TS
+(End of list)

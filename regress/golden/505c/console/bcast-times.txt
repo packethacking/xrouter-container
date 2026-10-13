@@ -1,0 +1,4 @@
+PN#DUT:DUT} Nodes Broadcast Times:
+ Interval (mins): #
+ Next Bcast in secs: #
+ Next Bcast Due: #

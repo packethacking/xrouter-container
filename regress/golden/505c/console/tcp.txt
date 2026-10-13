@@ -1,0 +1,1 @@
+PN#DUT:DUT} Syntax: TC[p] <cache | listeners | reset | status>

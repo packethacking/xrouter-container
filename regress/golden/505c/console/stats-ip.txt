@@ -1,0 +1,12 @@
+PN#DUT:DUT} IP Stats:
+IP Heard/Reasm/Rcvd/Routed: # # # #
+IP Bad Hdr/Chksum/Version: # # #
+IP Sent/Frag/Unsent/Total: # # # #
+IP Bytes Hrd/Rcvd/Sent/Routed: # # # #
+IP NoRoute NoGatewy RouteLoop: # # #
+IP Ignored Rejected Discarded: # # #
+IP Denied TTLExpired NoSocket: # # #
+IP TooBig HostEncap XrEncap: # # #
+IP HdrParam Recursion FromUs: # # #
+MaxElapsed=#
+(End of list)

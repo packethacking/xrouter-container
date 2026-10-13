@@ -1,0 +1,2 @@
+PN#DUT:DUT} Available languages: EN, FR, ES, NL
+Current language is EN

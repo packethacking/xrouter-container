@@ -1,0 +1,1 @@
+PN#DUT:DUT} Syntax: AC[l] < D[eny] | L[og] | P[ermit] | R[emove] | V[iew] >

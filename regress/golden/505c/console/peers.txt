@@ -1,0 +1,3 @@
+PN#DUT:DUT} Peers:
+ Nodecall RTT Hop Last-cnfrmd Last-update Latitude Longitude S/ware
+(End of list)

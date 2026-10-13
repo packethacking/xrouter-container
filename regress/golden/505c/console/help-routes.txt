@@ -1,0 +1,1 @@
+PN#DUT:DUT} Syntax: R[outes] [ A[dd] | D[rop] | L[oad] | R[etr] | S[tatus] | Q[ual] | T[ime] | X[tra] ] | [<callsign> <portnum>]

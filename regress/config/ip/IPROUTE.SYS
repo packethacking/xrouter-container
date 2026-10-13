@@ -1,0 +1,21 @@
+# IPROUTE.SYS for the regress IP gateway node. Several route forms, each
+# with its own destination range, so a test can tell which form broke.
+#
+# AX.25 users on port 2, datagram mode, static ARP for PN0TT.
+ip route add 44.130.1.0/24 * 2 d
+arp add 44.130.1.2 ax25 PN0TT
+#
+# The tunnel subnet, direct.
+ip route add 192.168.99.0/24 * 1 d
+#
+# The rest of 44-net via the Linux end of the tunnel (gateway given).
+ip route add 44.0.0.0/8 192.168.99.98 1 d
+#
+# A range routed into the tunnel with no gateway.
+ip route add 10.77.0.0/16 * 1 d
+#
+# A range handed to the Linux kernel stack (mode k).
+ip route add 10.78.0.0/16 * 0 k
+#
+# Everything else: default route into the tunnel.
+ip route default 1 192.168.99.98 d

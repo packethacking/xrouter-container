@@ -1,0 +1,27 @@
+PN#DUT:DUT} Full command list:
+ < *** @ ? acl arp amsg
+ ansi applmask aprs axroutes axtest bye BLOG
+ bcast bcpoll bell blevel connect capture cflags
+ chat cmd cq ctext ctflags ctrl cx
+ date digiflag digiport dhcp discard dos dun
+ dial dns dx echo exclude exit fec
+ finger frack ftp fulldup getfile gnet gping
+ gtracert help host info idtext idpath ids
+ iface ip ipaddress iproutes iplink j kill
+ keepalive links lang l#links listen loadnodes log
+ mheard mhclear mhflags man maxframe maxhops maxtxhops
+ mdir mfrom mhsize minqual mintxqual mmask mon
+ motd mport mqtt mtp mto nodes nat
+ netmask nftp nodesint notify nping nrr ntracert
+ ntty odn ports paclen pcap persist ping
+ pipe pipeflag PMS ppp putfile peers ps
+ quit quality routes radio resptime restart retries
+ reboot rip stats send shell slottime savenodes
+ smtp start stop sms telnet talk tcp
+ time tnc tracert tsync ttylink txdelay txok
+ txport txtail users udp udplocal udpremote unproto
+ version WALL wait watch wx yell xlink
+ core
+ BBS DUTAPP
+Use "? **" for detailed list
+Use "? <cmd>" for specific help on <cmd>

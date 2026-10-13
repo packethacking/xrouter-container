@@ -1,0 +1,28 @@
+PN#DUT:DUT} IP Configuration:
+ Host Name: DUT:PN#DUT
+ Domain Suffix: ampr.org.
+ Primary IP Address: #
+ Ethernet LAN: Indirect, via Linux IP stack
+ Default TTL: #
+ Stealth Level: # (Normal)
+ IP Filtering: Disabled
+ IP Routing Enabled: Via XR ports & Encap modes only
+ IPIP (#) Enabled: Via XR ports only
+ IPENCAP (#) Enabled: Via XR ports only
+ IPUDP Enabled: No
+ DNS Server(s): Kernel Resolver
+ Port (#):
+ Description: Probe A
+ InterfaceNum: # MTU: #
+ IP Address: # Subnet Mask: #
+ IPLINK Address: # (#)
+ Port (#):
+ Description: Probe B
+ InterfaceNum: # MTU: #
+ IP Address: # Subnet Mask: #
+ IPLINK Address: # (#)
+ Port (#):
+ Description: Neighbour XRouter
+ InterfaceNum: # MTU: #
+ IP Address: # Subnet Mask: #
+ IPLINK Address: # (#)

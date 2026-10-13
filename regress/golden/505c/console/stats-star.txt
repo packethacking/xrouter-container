@@ -1,0 +1,60 @@
+PN#DUT:DUT} Stats:
+Time active (mins): # (# days # hours # min # sec)
+Overruns: #
+Memory blocks: Min/Cur/Max # # #
+Nodes: Cur/Max/Free/Poss # # # #
+Total bytes sent/rcvd: # #
+Ccts/MaxCcts L#/L#/L#/TCP: # # # #
+HTTP Rqst/Srvd/Bytes/Prxyd: # # # #
+IP Heard/Reasm/Rcvd/Routed: # # # #
+IP Bad Hdr/Chksum/Version: # # #
+IP Sent/Frag/Unsent/Total: # # # #
+IP Bytes Hrd/Rcvd/Sent/Routed: # # # #
+L# Connects Tried/Made/Rcvd: # # #
+L# total frames Sent/Rcvd: # #
+L# Info Snt/Rcvd/Resent/Reseq: # # # #
+L# Choke Snt/Rxd RSET Snt/Rxd: # # # #
+L# Timeouts/Failures: # #
+L# Frames Hrd/Rcvd/Sent/Rlyd: # # # #
+ Port: # # #
+L# Frames Heard # # #
+L# Frames Rcvd # # #
+L# Frames Sent # # #
+L# Frames Relayed # # #
+L# Frames heard # # #
+L# Frames rcvd # # #
+L# Resequenced # # #
+L# Reassembled # # #
+L# Info Received # # #
+L# T# Timeouts # # #
+L# Digipeated # # #
+L# Info Sent # # #
+L# Info re-sent # # #
+L# Fragmented # # #
+L# Frames Sent # # #
+L# REJ Received # # #
+L# Rx out of seq # # #
+L# Frames Corrupt # # #
+L# FRMRs Sent # # #
+L# FRMRs Rcvd # # #
+Bytes Rcvd # # #
+Bytes Sent # # #
+Poll Timeouts # # #
+Tx/Rx Active% # # #
+Tx/Rx Peak% # # #
+Tx/Rx Mean% # # #
+ Interface: #
+RX Bytes: #
+RX Overruns: #
+RX CRC/Parity: #
+RX Framing err: #
+RX Break/Abort: #
+RX Overflow: #
+RX Misc. errors: #
+RX Read errors: #
+TX Bytes: #
+TX Overflows: #
+TX Underruns: #
+TX Write errors: #
+MaxElapsed=#
+(End of list)

@@ -1,0 +1,54 @@
+PN#DUT:DUT} Full command list:
+ ? Show syntax of command
+ arp Show/edit ARP table
+ amsg Start APRS Messaging client
+ ansi Enquire / set ANSI colour mode
+ aprs Watch APRS traffic
+ axroutes Display AX# level # circuits
+ axtest AX#v# Loopback Test
+ bye Disconnect from this system
+ BLOG Access Local or remote Blog(s)
+ connect Connect to another AX#/Netrom system
+ chat Enter chat rooms
+ cq Call CQ from LISTEN mode
+ cx Connect using modulo-# to another AX#L# system
+ date Enquire/set system date
+ dx Show distant APRS station
+ echo Start an ECHO session
+ finger Display information about users
+ gping Send GNET ECHO request
+ gtracert Trace route to a GNET node
+ help Show help for commands and other topics
+ host Hostname to IP address lookup
+ info Display node Information and other topics
+ iproutes Display IP routing table
+ j Show recent sessions
+ links Show active AX# level # connections
+ lang Switch language
+ l#links Show active Netrom level # connections
+ listen Listen for incoming connectiions
+ mheard Show recently heard AX# L# callsigns
+ nodes Display/edit Netrom node table
+ nftp Initiate Netrom File Transfer Protocol session
+ nping Send Netrom echo request(s)
+ nrr Netrom Record Route (to a node)
+ ntracert Trace route to a netrom node
+ ports List/edit communication 'ports'
+ ping Send ICMP ECHO request(s)
+ PMS Access Personal Message System(s)
+ quit Disconnect from this system
+ routes Display/edit Netrom routing
+ stats Display XRouter operating statistics
+ send Send AX# L# 'unproto' text
+ telnet Initiate a TCP 'downlink'
+ time Show time at any XRouter / Set time here
+ tracert Trace route to an IP host
+ ttylink Keyboard chat with another TCP/IP system
+ users Show current sessions here
+ version Display software type and version
+ WALL Access Local/remote Message Wall(s)
+ watch Watch AX# traffic on [portnum]
+ wx Display weather information, if available
+ yell Page the sysop for a chat
+ BBS DUTAPP
+Use "? <cmd>" for specific help on <cmd>

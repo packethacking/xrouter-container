@@ -163,7 +163,7 @@ def stack(wirelog):
     if not reuse:
         for tag in {VERSION, NBR_VERSION}:
             build_image(tag)
-        sh("docker", "rm", "-f", "xrr-dut", "xrr-nbr", check=False)
+        sh("docker", "rm", "-f", "xrr-dut", "xrr-nbr", "xrr-ip", check=False)
         if sh("docker", "network", "inspect", NET, check=False).returncode != 0:
             sh("docker", "network", "create", "--subnet", SUBNET, NET)
     # Probes first, so nothing XRouter sends at boot is lost.
@@ -204,7 +204,7 @@ def probe_c(stack):
     return stack["probes"]["C"]
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def dut(stack):
     """A sysop telnet session on the DUT."""
     from xrconsole import XRConsole
@@ -214,7 +214,7 @@ def dut(stack):
     c.close()
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def dut_user(stack):
     """A plain (non-sysop) telnet session on the DUT."""
     from xrconsole import XRConsole
@@ -223,10 +223,50 @@ def dut_user(stack):
     c.close()
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def nbr(stack):
     from xrconsole import XRConsole
     c = XRConsole(HOST, NBR_TELNET, "PN0TST", name="nbr", log=Log(os.path.join(OUT, "consoles.txt")))
+    c.sysop(SYSOP_PASSWORD)
+    yield c
+    c.close()
+
+
+# ---------------------------------------------------------------- IP gateway node
+
+IP_IP, IP_TELNET, PROBE_D, IP_BRIDGE = "172.28.78.13", 18025, 30004, 30111
+
+
+@pytest.fixture(scope="session")
+def ipgw(stack, wirelog):
+    """The IP gateway node xrr-ip (config/ip), started on first use, with the
+    UDP bridge for its AX.25 port and the Linux side of the AMPRNet set up:
+    44.130.2.2 on lo (the AXIP partner) and 44.130.0.0/16 into the tunnel."""
+    reuse = os.environ.get("XRR_REUSE") == "1"
+    if not reuse:
+        start_node("xrr-ip", IP_IP, VERSION, os.path.join(REGRESS, "config", "ip"), {IP_TELNET: 23})
+        wait_booted("xrr-ip")
+        end = time.time() + 20
+        while time.time() < end and dexec("xrr-ip", "ip link show tun99 | grep -q UP").returncode:
+            time.sleep(0.5)
+        dexec("xrr-ip", "ip addr add 44.130.2.2/32 dev lo; ip route add 44.130.0.0/16 dev tun99", check=True)
+        sh("docker", "exec", "-d", "xrr-ip", "python3", "/usr/local/bin/udpbridge.py",
+           "10093", "30011", str(IP_BRIDGE), GATEWAY, str(PROBE_D))
+        time.sleep(2)
+    probe = Probe("D", ("0.0.0.0", PROBE_D), (IP_IP, IP_BRIDGE), wirelog)
+    yield {"probe": probe}
+    probe.close()
+    r = sh("docker", "logs", "xrr-ip", check=False)
+    with open(os.path.join(OUT, "xrr-ip.log"), "w") as f:
+        f.write(r.stdout + r.stderr)
+    if not reuse and os.environ.get("XRR_KEEP") != "1":
+        sh("docker", "rm", "-f", "xrr-ip", check=False)
+
+
+@pytest.fixture(scope="module")
+def ipcon(ipgw):
+    from xrconsole import XRConsole
+    c = XRConsole(HOST, IP_TELNET, "PN0TST", name="ipgw", log=Log(os.path.join(OUT, "consoles.txt")))
     c.sysop(SYSOP_PASSWORD)
     yield c
     c.close()

@@ -1,0 +1,2 @@
+PN#DUT:DUT} Local time is #
+Use "TIME <nodecall>" to query the time at another node
