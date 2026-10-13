@@ -23,7 +23,7 @@ pick it up. Baseline version: **505c** (the release before 505o).
 | G4 | Tom M0LTE | INPBCINTERVAL ignored | 4374/4378 | interop | known, issue #4 |
 | G5 | Tom M0LTE | own node tt 0 | 4374 | interop | known, issue #5 |
 | G6 | Tom M0LTE | NODES broadcasts on first port only | 4377 | interop | known, issue #6 |
-| G7 | Danny PA2SNK | INP3 route via neighbour preferred over direct 1-hop quality 192 RF route; can't connect to that node any more | 4400/4401 | test_50_routing, test_51_routing_slow_rf | not reproduced: 505o prefers the direct route, also with a slow (0.8 s) direct link, direct neighbour INP3 or not. Untried: 505o neighbour, BPQ neighbour, link resets |
+| G7 | Danny PA2SNK | INP3 route via neighbour preferred over direct 1-hop quality 192 RF route; can't connect to that node any more | 4400/4401 | test_50_routing, test_51_routing_slow_rf | not reproduced: 505o prefers the direct route in every variant: direct neighbour NET/ROM-only or INP3, slow (0.8 s) direct link, sysop-locked q192 route, neighbour XRouter 505c or 505o (505o neighbour sends the node INP3-only, qty 0). Untried: BPQ as the INP3 neighbour (PE1OEZ's software unknown), link resets. Need Danny's N/R output |
 | G8 | Danny PA2SNK | Beacon digi (unproto via the node) no longer relayed | 4400 | test_20_digi, test_60 AGW | digipeating and BCAST same as 505c; FOUND: AGW 'M' unproto from an unregistered client is not sent on 505o (505c sends it). Possibly Danny's case. |
 | G9 | Danny PA2SNK | BBS: compressed forward ok, but message retrieval by number disconnects | 4400 | test_40_pms, test_41_fbb | FOUND: R n / n show an EMPTY body for every forwarded message without a blank line after the R: lines (#13; pre-existing for MBL forwarding, but now hits all FBB/compressed forwarded mail). FOUND: undecodable compressed data hangs the whole node (#12). FOUND: after an FBB SID user commands get no answer (#14). Valid B0 compressed and ASCII FBB forwarding work |
 | G10 | Danny PA2SNK | BBS connect text / prompt changed: only header and prompt | 4400 | test_40_pms greetings, test_55 BBS over L4 | not reproduced for plain users (greeting identical apart from SID); likely the FBB-SID path above |
@@ -92,12 +92,16 @@ triaged:
 
 ## Next steps
 
-1. Full 505c and 505o runs of the whole suite (stability); CI run in Actions.
-2. G7 more variants: 505o neighbour (XRR_NBR_TAG=505o), link reset.
+1. CI run in Actions.
+2. G7: ask Danny for `N JOURE` / `R` output (user's call to post).
 3. Reverse FBB forwarding (BBS proposes to partner) needs FWD.SYS set-up.
-4. DEDHOST (WA8DED host mode) unproto, for tsthost-style programs.
+4. DEDHOST done (test_70); channel-0 unproto does not transmit on 505c either.
 5. Report findings to groups.io? (user's call)
 - 2026-10-13: FBB work. LZHUF codec (tests/lzhuf.py, byte-exact with LinFBB)
   by a subagent. Found #12, #13, #14. G7 slow-RF variants: no difference.
   Chat and telnet access tests added (test_45). G11 variants by hand: none
   differ between 505c and 505o.
+- 2026-10-13: full-suite runs: 505c 223 pass / 4 flaky, 505o 225 pass / 9 xfail /
+  6 (flaky + DEDHOST uncalibrated). Fixed flakiness (multi-frame NODES,
+  state-dependent console tables), DEDHOST on a persistent pty bridge. G7 with
+  505o neighbour and locked-route variants: not reproduced.

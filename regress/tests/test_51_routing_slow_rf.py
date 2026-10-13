@@ -20,15 +20,20 @@ from fakenode import FakeNode
 from test_50_routing import routes_to
 
 CASES = [
-    # (call, alias, the direct neighbour speaks INP3)
-    ("PN0TU", "SLOWA", False),
-    ("PN0TV", "SLOWB", True),
+    # (call, alias, the direct neighbour speaks INP3, locked route on port 1)
+    ("PN0TU", "SLOWA", False, False),
+    ("PN0TV", "SLOWB", True, False),
+    ("PN0TW", "SLOWC", False, True),
 ]
 
 
-@pytest.fixture(scope="module", params=CASES, ids=["direct-netrom", "direct-inp3"])
-def slow_paths(request, probe_a, probe_c, nbr):
-    call, alias, direct_inp3 = request.param
+@pytest.fixture(scope="module", params=CASES, ids=["direct-netrom", "direct-inp3", "direct-locked-192"])
+def slow_paths(request, probe_a, probe_c, nbr, dut):
+    call, alias, direct_inp3, locked = request.param
+    if locked:
+        # A sysop-locked route at quality 192, as for a fixed RF link.
+        out = dut.cmd(f"R A {call} 1 192 !", 1.5)
+        assert "Ok" in out, out
     direct = FakeNode(probe_a, call, alias, DUT_CALL, inp3=direct_inp3, nodes_every=20, rif_every=30, delay=0.8)
     via_nbr = FakeNode(probe_c, call, alias, NBR_CALL, inp3=True, nodes_every=20, rif_every=30)
     yield call, alias, direct, via_nbr
