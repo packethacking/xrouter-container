@@ -358,18 +358,21 @@ def dednode(stack, wirelog):
     src = fbb_config_dir()
     dst = os.path.join(OUT, "ded-config")
     os.makedirs(dst, exist_ok=True)
-    for f in os.listdir(src):
-        text = open(os.path.join(src, f)).read()
-        if f == "XROUTER.CFG":
-            text = text.replace("\nINTERFACE=1\n", DED_EXTRA + "\nINTERFACE=1\n", 1)
-        with open(os.path.join(dst, f), "w") as out:
-            out.write(text)
+    import shutil
+    shutil.rmtree(dst, ignore_errors=True)
+    shutil.copytree(src, dst)
+    cfg = os.path.join(dst, "XROUTER.CFG")
+    text = open(cfg).read().replace("\nINTERFACE=1\n", DED_EXTRA + "\nINTERFACE=1\n", 1)
+    with open(cfg, "w") as out:
+        out.write(text)
     sh("docker", "rm", "-f", "xrr-ded", check=False)
     args = ["docker", "run", "-d", "--name", "xrr-ded", "--network", NET, "--ip", DED_IP,
             "--cap-add", "NET_ADMIN", "--cap-add", "NET_RAW", "--device", "/dev/net/tun",
             "-p", f"127.0.0.1:{DED_TELNET}:23", "-p", f"127.0.0.1:{DED_TCP}:7300"]
-    for f in sorted(os.listdir(dst)):
-        args += ["-v", f"{os.path.join(dst, f)}:/data/{f}:ro"]
+    for root, _, files in sorted(os.walk(dst)):
+        for f in sorted(files):
+            rel = os.path.relpath(os.path.join(root, f), dst)
+            args += ["-v", f"{os.path.join(root, f)}:/data/{rel}:ro"]
     args += ["--entrypoint", "/bin/sh", image(VERSION), "-c",
              "python3 /usr/local/bin/ptybridge.py /dev/ttyDED 7300 & sleep 1; "
              "exec /usr/local/bin/xrouter-entrypoint.sh"]

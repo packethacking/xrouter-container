@@ -14,8 +14,8 @@ the session that wrote them may be gone. To pick the work up:
    says when it is done. Pick one, tick its boxes as you go, close it with a
    comment saying what was done. Do not keep a second to-do list here.
 3. Run `regress/run.sh 505c 505o` (Docker, Python 3 + pytest, /dev/net/tun;
-   about 35 min). Expected: 505c 233 passed, 6 skipped, 3 xfailed; 505o 232
-   passed, 10 xfailed. Anything else is new information: a flaky test, a
+   about 45 min). Expected (2026-10-14): 505c 237 passed, 9 skipped,
+   4 xfailed; 505o 239 passed, 11 xfailed. Anything else is new information: a flaky test, a
    harness break, or (on a new XRouter version) a behaviour change.
 4. After each meaningful step: update the tables below and the Log, commit,
    push. Bugs go in their own issue (XRouter bugs: label `xrouter-bug`) and
@@ -55,12 +55,12 @@ Coverage and the gaps worth closing next: `COVERAGE.md`.
 | #23 | MBL forwarding out: stray NUL before /EX | 505c (fixed in 505o) |
 | #2, #6 | Known from interop: RHP bind reply; NODES only on first port | |
 
-### State of the suite (last full runs, 2026-10-13)
+### State of the suite (last full runs, 2026-10-14)
 
-- 505c: 233 passed, 6 skipped (FBB tests; 505c has no F in its SID),
-  3 xfailed (#13, DEDHOST channel-0 unproto).
-- 505o: 232 passed, 10 xfailed (#2, #6, #11, #12 x2, #13 x3, #14, DEDHOST).
-  No unexpected failures.
+- 505c: 237 passed, 9 skipped (FBB tests; 505c has no F in its SID),
+  4 xfailed (#13, #23, DEDHOST channel-0 unproto).
+- 505o: 239 passed, 11 xfailed (#2, #6, #11, #12 x2, #13 x3, #14, #22,
+  DEDHOST). No unexpected failures. CI (regress workflow) agrees.
 
 ## Goal
 
@@ -151,3 +151,5 @@ Coverage and the gaps worth closing next: `COVERAGE.md`.
 - 2026-10-14: first CI run (automatic after the #19 image publish) matches
   local results: 505c green, 505o 232 passed / 10 xfailed. #18 closed.
   Coverage gaps filed as #24-#29.
+- 2026-10-14: full runs with #15/#17 additions: all green against known
+  issues (after fixing the DEDHOST fixture for the BBS config's PMS/ subdir).
