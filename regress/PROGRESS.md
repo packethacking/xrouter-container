@@ -168,3 +168,8 @@ Coverage and the gaps worth closing next: `COVERAGE.md`.
   also on 505n (known-issues `from` moved to 505n, likewise #11 #12 #14
   #22). repro/ now covers #2 #3 #6 too. All open issues reviewed and
   updated with 505n results.
+- 2026-10-14: repro/ adds #4, #5, #7 (fake INP3 neighbours over AXUDP,
+  stdlib). 505n/505o: all three present. 505c: #4 and #5 present (no RIF
+  at link set-up; first full update ~600 s after start-up); #7 not
+  reproduced (505c sends no change RIFs there, only full updates). Every
+  XRouter bug issue now leads with a verified repro.py run.
