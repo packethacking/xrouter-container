@@ -190,3 +190,10 @@ Coverage and the gaps worth closing next: `COVERAGE.md`.
   relay nothing). Interop on 505l fails exactly the #8/#9 tests: both fixed
   in 505m, not 505o. 505p (armv7 under qemu-arm): #2 #3 #5 fixed (closed,
   fixed_in 505p); #4 #6 #7 #11 #12 #13 #14 #22 still present.
+- 2026-10-14: interop on 505p (armv7 binary under qemu-arm inside the amd64
+  505o image, tagged 505p locally; peers LinBPQ, TheNet, 505o): #8/#9 all
+  22 runnable tests pass; #4 #6 #7 xfail as expected. L4 V checks now accept
+  the "XrPi" banner (69ca4aa). TheNet tests flaky under emulation (a
+  different one failed in each of three runs, each passed at least once);
+  not recorded as a known issue. Bug matrix artifact:
+  https://claude.ai/artifact/SvgMibKE5mjqHMWooqfmwc
