@@ -161,8 +161,9 @@ Coverage and the gaps worth closing next: `COVERAGE.md`.
   directory) + repro.py (stdlib only) for #11 #12 #13 #14 #22 #23; verified
   on 505c and 505o as a non-root user and from a fresh clone; every bug
   issue rewritten to lead with those steps and the real output.
-- 2026-10-14: #2, #3, #6, #11-#14, #22 reported to the author by private
-  email (label `reported`; #7 not yet). New upstream build found:
+- 2026-10-14: #11-#14, #22 reported to the author by private email
+  (label `reported`; #2-#6 went to the xrouter group on 2026-10-11; #7 not
+  yet). New upstream build found:
   `xrlin64v505n-static` (groups.io files, uploaded 2026-10-13 after 505o,
   SID `[XR-505n-BFHM$]`; not yet in versions.json). Repros and interop on
   505n: same as 505o except #2 (bind reply valid) and #23 (clean). #3
