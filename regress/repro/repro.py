@@ -13,7 +13,10 @@ the node.
 
    2  RHP bind reply is not valid JSON
    3  RHP send / sendto on a listening socket reply without the socket handle
+   4  INPBCINTERVAL has no effect on full INP3 updates (takes ~5 minutes)
+   5  the node advertises itself in INP3 with trip time 0
    6  scheduled NODES broadcasts go out on the first port only (takes ~3 minutes)
+   7  the first INP3 RIP for a newly learnt node has no alias option
   11  AGW 'M' (unproto) from a client that has not registered a callsign is not sent
   12  an undecodable compressed (FA) BBS message hangs the whole node
   13  R n shows no body for a forwarded message with no blank line after its R: lines
@@ -32,6 +35,9 @@ import time
 
 HOST = "127.0.0.1"
 TELNET, AGW, UDP_SNIFF, UDP_SNIFF2, RHP = 8023, 8000, 9999, 9998, 9000
+XR_UDP1, XR_UDP2 = 10093, 10094          # the node's UDPLOCAL for ports 1 and 2
+NODECALL = "PN0RPR"
+START = time.time()
 
 
 class Telnet:
@@ -161,6 +167,207 @@ def repro_3() -> int:
     missing = [n for n, rep in (("send", send), ("sendto", sendto)) if rep is None or rep.get("handle") != h]
     return verdict(bool(missing), f"{' and '.join(missing)} reply without handle {h}" if missing
                    else f"both replies carry handle {h}")
+
+
+# ---------------------------------------------------------------- 4, 5, 7: INP3
+
+def fcs16(data: bytes) -> int:
+    """CRC-16/X.25, the AX.25 frame check sequence AXUDP carries."""
+    crc = 0xFFFF
+    for b in data:
+        crc ^= b
+        for _ in range(8):
+            crc = (crc >> 1) ^ 0x8408 if crc & 1 else crc >> 1
+    return crc ^ 0xFFFF
+
+
+def addr(call: str, last: bool = False, cmd: bool = False) -> bytes:
+    base, _, ssid = call.partition("-")
+    return (bytes(ord(c) << 1 for c in base.ljust(6)) +
+            bytes([0x60 | int(ssid or 0) << 1 | last | (0x80 if cmd else 0)]))
+
+
+def call_of(raw: bytes) -> str:
+    base = "".join(chr(b >> 1) for b in raw[:6]).strip()
+    ssid = raw[6] >> 1 & 0x0F
+    return f"{base}-{ssid}" if ssid else base
+
+
+def decode_rif(info: bytes) -> list[tuple[str, int, int, str | None]]:
+    """A RIF (0xFF, then RIPs: call, hops, trip time, options, 0) as
+    (call, hops, trip time, alias or None)."""
+    rips, p = [], 1
+    while p + 10 <= len(info):
+        call, hops, tt = call_of(info[p:p + 7]), info[p + 7], int.from_bytes(info[p + 8:p + 10], "big")
+        p += 10
+        alias = None
+        while p < len(info) and info[p] != 0:
+            n, kind = info[p], info[p + 1]
+            if kind == 0:
+                alias = info[p + 2:p + n].decode("latin-1")
+            p += n
+        p += 1
+        rips.append((call, hops, tt, alias))
+    return rips
+
+
+def show_rif(rips) -> str:
+    return ", ".join(f"{a or ''}:{c} hops {h} tt {t}" for c, h, t, a in rips)
+
+
+class Inp3Neighbour:
+    """A fake INP3 neighbour on one of the node's AXUDP ports: it broadcasts
+    NODES so the node opens a link to it, answers on that link (UA, RR),
+    reflects the node's L3RTT probes, sends one L3RTT of its own and one RIF
+    with its call and alias, and keeps every RIF the node sends it."""
+
+    def __init__(self, call: str, alias: str, listen: int, node_port: int):
+        import threading
+        self.call, self.alias, self.peer = call, alias, (HOST, node_port)
+        self.u = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.u.bind((HOST, listen))
+        self.u.settimeout(0.2)
+        self.connected, self.vs, self.vr = False, 0, 0
+        self.rifs: list[tuple[float, list]] = []
+        threading.Thread(target=self._run, daemon=True).start()
+
+    def _tx(self, ctl: int, pid: int | None = None, info: bytes = b"", dst: str = NODECALL, cmd: bool = True) -> None:
+        body = addr(dst, cmd=cmd) + addr(self.call, last=True, cmd=not cmd) + bytes([ctl])
+        if pid is not None:
+            body += bytes([pid])
+        body += info
+        c = fcs16(body + b"")
+        self.u.sendto(body + bytes([c & 0xFF, c >> 8]), self.peer)
+
+    def send_i(self, info: bytes) -> None:
+        self._tx(self.vs << 1 | self.vr << 5, 0xCF, info)
+        self.vs = (self.vs + 1) & 7
+
+    def broadcast_nodes(self) -> None:
+        # One entry (our BBS at SSID 7): the node ignores a NODES with none.
+        bbs = addr(f"{self.call}-7")[:6] + bytes([addr(f"{self.call}-7")[6] & 0x1E | 0x60])
+        me = addr(self.call)[:6] + bytes([addr(self.call)[6] & 0x1E | 0x60])
+        info = b"\xff" + self.alias.ljust(6).encode() + bbs + (self.alias[:5] + "B").ljust(6).encode() + me + bytes([200])
+        self._tx(0x03, 0xCF, info, dst="NODES")
+
+    def _netrom(self, info: bytes) -> None:
+        if info[:1] == b"\xff":
+            rips = decode_rif(info)
+            self.rifs.append((time.time(), rips))
+            print(f"  {time.time() - START:6.1f} s  {NODECALL} -> {self.call} RIF: {show_rif(rips)}")
+        elif len(info) >= 20 and call_of(info[7:14]) == "L3RTT" and call_of(info[0:7]) != self.call:
+            self.send_i(info[:14] + bytes([max(info[14] - 1, 0)]) + info[15:])     # reflect it
+
+    def _say_hello(self) -> None:
+        time.sleep(1)
+        me = addr(self.call)[:6] + bytes([addr(self.call)[6] & 0x1E | 0x60])
+        rtt = addr("L3RTT")[:6] + bytes([addr("L3RTT")[6] & 0x1E | 0x60])
+        text = (f"L3RTT: {int(time.time() * 100) % 1000000:10d} {0:10d} {0:10d} {1:10d} "
+                f"{self.alias:<6} LEVEL3_V2.1 REPRO01 $M9000 $N $H4\r").encode()
+        self.send_i(me + rtt + bytes([2, 0, 0, 0, 0, 5]) + text)
+        time.sleep(1)
+        a = self.alias.encode()
+        self.send_i(b"\xff" + me + bytes([1]) + (1).to_bytes(2, "big") + bytes([len(a) + 2, 0]) + a + b"\x00")
+
+    def _run(self) -> None:
+        import threading
+        next_nodes = 0.0
+        while True:
+            if time.time() >= next_nodes:
+                self.broadcast_nodes()
+                next_nodes = time.time() + 30
+            try:
+                pkt, _ = self.u.recvfrom(4096)
+            except socket.timeout:
+                continue
+            body = pkt[:-2]
+            if len(body) < 15 or call_of(body[0:7]) != self.call:
+                continue
+            ctl = body[14]
+            pf = ctl & 0x10
+            if ctl & ~0x10 == 0x2F:                                   # SABM
+                self.connected, self.vs, self.vr = True, 0, 0
+                self._tx(0x63 | pf, cmd=False)                        # UA
+                threading.Thread(target=self._say_hello, daemon=True).start()
+            elif ctl & ~0x10 == 0x43:                                 # DISC
+                self.connected = False
+                self._tx(0x63 | pf, cmd=False)
+            elif ctl & ~0x10 == 0xAF:                                 # XID: not supported
+                self._tx(0x87 | pf, info=bytes([ctl, 0, 0]), cmd=False)
+            elif ctl & 1 == 0:                                        # I frame
+                if (ctl >> 1 & 7) == self.vr:
+                    self.vr = (self.vr + 1) & 7
+                    if body[15] == 0xCF:
+                        self._netrom(body[16:])
+                self._tx(0x01 | self.vr << 5 | pf, cmd=False)         # RR
+            elif ctl & 3 == 1 and pf and body[6] & 0x80:              # RR/RNR/REJ poll
+                self._tx(0x01 | self.vr << 5 | 0x10, cmd=False)
+
+
+def wait_for(cond, seconds: float) -> bool:
+    end = time.time() + seconds
+    while time.time() < end:
+        if cond():
+            return True
+        time.sleep(0.5)
+    return False
+
+
+def repro_5() -> int:
+    """Trip time of the node's own RIP in the first RIF it sends."""
+    nb = Inp3Neighbour("PN0NBA", "NBA", UDP_SNIFF, XR_UDP1)
+    print(f"Fake INP3 neighbour PN0NBA on port 1; waiting for {NODECALL}'s first RIF ...")
+    if not wait_for(lambda: nb.rifs, 120):
+        return verdict(False, "no RIF from the node in 120 s (not taken as an INP3 neighbour)")
+    own = [r for r in nb.rifs[0][1] if r[0] == NODECALL]
+    if not own:
+        return verdict(False, f"the first RIF has no RIP for {NODECALL}")
+    tt = own[0][2]
+    return verdict(tt == 0, f"{NODECALL} advertises itself with trip time 0 (range is 1-60000)" if tt == 0
+                   else f"{NODECALL} advertises itself with trip time {tt}")
+
+
+def repro_4() -> int:
+    """Full updates (RIFs that include the node itself) with INPBCINTERVAL=120."""
+    nb = Inp3Neighbour("PN0NBA", "NBA", UDP_SNIFF, XR_UDP1)
+    print(f"Fake INP3 neighbour PN0NBA on port 1. XROUTER.CFG has INPBCINTERVAL=120.")
+    print(f"Watching for 300 s after the first RIF for full updates (RIFs that include {NODECALL}) ...")
+    if not wait_for(lambda: nb.rifs, 120):
+        return verdict(False, "no RIF from the node in 120 s (not taken as an INP3 neighbour)")
+    first = nb.rifs[0][0]
+    time.sleep(max(0.0, first + 300 - time.time()))
+    full = [round(t - first) for t, rips in nb.rifs if any(r[0] == NODECALL for r in rips)]
+    print(f"  full updates at (s after the first RIF): {full}")
+    t = Telnet("PN0USR")
+    t.send("N BC T")
+    t.read(2)
+    t.close()
+    later = [s for s in full if s >= 30]
+    bug = not later
+    return verdict(bug, "no full update within 300 s, although INPBCINTERVAL=120" if bug
+                   else f"full updates after set-up at {later} s")
+
+
+def repro_7() -> int:
+    """Two fake INP3 neighbours: B's link is up and settled, then A appears.
+    The first positive RIP (trip time below 60000) for A that the node sends
+    B should carry A's alias."""
+    b = Inp3Neighbour("PN0NBB", "NBB", UDP_SNIFF, XR_UDP1)
+    print("Fake INP3 neighbour PN0NBB (alias NBB) on port 1; waiting for its link and first RIF ...")
+    if not wait_for(lambda: b.rifs, 120):
+        return verdict(False, "no RIF to PN0NBB in 120 s (not taken as an INP3 neighbour)")
+    time.sleep(20)
+    print("Now fake INP3 neighbour PN0NBA (alias NBA) on port 2 ...")
+    mark = len(b.rifs)
+    a = Inp3Neighbour("PN0NBA", "NBA", UDP_SNIFF2, XR_UDP2)
+    about_a = lambda: [r for _, rips in b.rifs[mark:] for r in rips if r[0] == "PN0NBA" and r[2] < 60000]  # noqa: E731
+    if not wait_for(about_a, 120):
+        return verdict(False, "no positive RIP for PN0NBA sent to PN0NBB in 120 s")
+    rip = about_a()[0]
+    print(f"  first positive RIP for PN0NBA sent to PN0NBB: {show_rif([rip])}")
+    bug = rip[3] is None
+    return verdict(bug, "the first positive RIP for PN0NBA sent to PN0NBB has no alias option" if bug
+                   else f"the first positive RIP for PN0NBA carries alias {rip[3]}")
 
 
 # ---------------------------------------------------------------- 6
@@ -366,7 +573,7 @@ def repro_23() -> int:
 
 
 def main() -> int:
-    repros = {"2": repro_2, "3": repro_3, "6": repro_6, "11": repro_11, "12": repro_12, "13": repro_13, "14": repro_14, "22": repro_22, "23": repro_23}
+    repros = {"2": repro_2, "3": repro_3, "4": repro_4, "5": repro_5, "6": repro_6, "7": repro_7, "11": repro_11, "12": repro_12, "13": repro_13, "14": repro_14, "22": repro_22, "23": repro_23}
     if len(sys.argv) != 2 or sys.argv[1] not in repros:
         print(__doc__)
         return 2

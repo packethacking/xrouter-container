@@ -1,7 +1,7 @@
 # Bug reproductions
 
 Stand-alone reproductions for the XRouter bugs that `regress/` found
-(GitHub issues #2, #3, #6, #11, #12, #13, #14, #22, #23). They need only a published
+(GitHub issues #2-#7, #11, #12, #13, #14, #22, #23). They need only a published
 XRouter binary, Python 3.8 or later (standard library only) and a shell.
 No Docker and no root.
 
@@ -22,7 +22,8 @@ kill -9 $(cat xrrepro-node/xrouter.pid)
 Start a fresh node for each reproduction: some leave mail behind, and #12
 hangs the node. The node listens on 127.0.0.1 only: telnet 8023, AGW 8000,
 RHP 9000, and two AXUDP ports that send to 127.0.0.1:9999 and :9998 (the
-#6 and #11 scripts listen there to see what goes out on air).
+#6 and #11 scripts listen there to see what goes out on air; #4, #5 and
+#7 play fake INP3 neighbours there).
 
 Each reproduction prints every line it sends (`->`) and receives (`<-`),
 then a verdict line, `BUG PRESENT: ...` (exit 1) or `NOT REPRODUCED: ...`
