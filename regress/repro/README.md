@@ -33,7 +33,10 @@ then a verdict line, `BUG PRESENT: ...` (exit 1) or `NOT REPRODUCED: ...`
 |---|---|---|---|---|
 | 2 | RHP bind reply is not valid JSON | not reproduced | not reproduced | **present** |
 | 3 | RHP send/sendto on a listening socket reply without the handle | not reproduced | **present** | **present** |
+| 4 | INPBCINTERVAL has no effect: no scheduled full INP3 update within 5 min (6 min) | **present** | **present** | **present** |
+| 5 | Node advertises itself in INP3 with trip time 0 (505c: 10 min) | **present** | **present** | **present** |
 | 6 | Scheduled NODES broadcasts only on the first port (3 min) | **present** | **present** | **present** |
+| 7 | First positive INP3 RIP for a newly learnt node has no alias (11 min on 505c) | not reproduced (sends only full updates) | **present** | **present** |
 | 11 | AGW `M` (unproto) from an unregistered client is not sent | not reproduced | **present** | **present** |
 | 12 | Undecodable compressed (FA) BBS message hangs the node | n/a (no FBB) | **present** | **present** |
 | 13 | `R n` shows no body for a forwarded message | **present** | **present** | **present** |
