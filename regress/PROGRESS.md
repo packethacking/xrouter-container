@@ -89,6 +89,7 @@ Coverage and the gaps worth closing next: `COVERAGE.md`.
 | G9 | Danny PA2SNK | BBS: compressed forward ok, but message retrieval by number disconnects | 4400 | test_40_pms, test_41_fbb | FOUND: R n / n show an EMPTY body for every forwarded message without a blank line after the R: lines (#13; pre-existing for MBL forwarding, but now hits all FBB/compressed forwarded mail). FOUND: undecodable compressed data hangs the whole node (#12). FOUND: after an FBB SID user commands get no answer (#14). Valid B0 compressed and ASCII FBB forwarding work |
 | G10 | Danny PA2SNK | BBS connect text / prompt changed: only header and prompt | 4400 | test_40_pms greetings, test_55 BBS over L4 | not reproduced for plain users (greeting identical apart from SID); likely the FBB-SID path above |
 | G11 | Jean VE2PKT | AMPRNet (44/8) IP traffic not routed out the TUN interface; can't ping any 44 station; AXUDP/AXTCP fine | 4386-4397 | test_31_ip_gateway (node config/ip) | not reproduced: all 13 gateway tests pass on 505o; variants tried by hand (TUN port w/o IPADDRESS, port IP = 44 address, persistent tunnel) identical on 505c/505o. Further work: #16 |
+| G12 | Paula (author) | 505n and 505o: NetRom security change; in some circumstances XRouter tears down an L4 circuit from a BPQ node on its first L4 INFO frame. Versions before 505n and after 505o not affected | 4410 | interop test_04_l4 | not reproduced: interop L4 tests in both directions (INFO from LinBPQ included) pass on 505n and 505o; the triggering circumstances are not stated |
 | G12 | Danny Moss VK7HDM | no 32-bit stretch build | 4371 | n/a (packaging) | not testable |
 | G13 | Danny PA2SNK | systemd service still starts 505c | 4383 | n/a (local setup) | not a bug |
 
@@ -173,3 +174,11 @@ Coverage and the gaps worth closing next: `COVERAGE.md`.
   at link set-up; first full update ~600 s after start-up); #7 not
   reproduced (505c sends no change RIFs there, only full updates). Every
   XRouter bug issue now leads with a verified repro.py run.
+- 2026-10-14: groups.io 4407-4410 "Intermediate versions Available": Paula
+  uploaded intermediate builds 505d, 505h, 505i, 505k, 505l, 505m (x86-64
+  static; most 32-bit and Pi32 too) to bisect 505c->505o regressions. She
+  says: RHP broke in 505o (our #3 is already on 505n); INP3 rework began in
+  505d and settled in 505m; ageing reinstated in 505m; new G12 (L4 INFO
+  from BPQ tears down circuit, 505n/505o only); TUN (#16), Danny's route
+  choice (G7) and BBS (G9/G10) under investigation. Next: run repro/ on
+  each intermediate build to find where each bug came in.
