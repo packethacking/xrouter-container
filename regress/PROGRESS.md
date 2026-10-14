@@ -182,3 +182,10 @@ Coverage and the gaps worth closing next: `COVERAGE.md`.
   from BPQ tears down circuit, 505n/505o only); TUN (#16), Danny's route
   choice (G7) and BBS (G9/G10) under investigation. Next: run repro/ on
   each intermediate build to find where each bug came in.
+- 2026-10-14: upstream check (fired early) ingested 505d-505n amd64 and the
+  arm builds, plus 505p armv7 (newest version; latest_armv7 and latest now
+  505p, amd64/arm64 stay 505o). Repros on the intermediates: #3 #11 #12
+  #14 #22 first in 505d, #23 fixed in 505d, #7 first in 505m (505k/505l
+  relay nothing). Interop on 505l fails exactly the #8/#9 tests: both fixed
+  in 505m, not 505o. 505p (armv7 under qemu-arm): #2 #3 #5 fixed (closed,
+  fixed_in 505p); #4 #6 #7 #11 #12 #13 #14 #22 still present.

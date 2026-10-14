@@ -16,6 +16,7 @@ issue = "https://github.com/packethacking/xrouter-container/issues/2"
 title = "RHP bind reply is not valid JSON (type bind, errText label missing)"
 from = "505o"
 until = "505o"
+fixed_in = "505p"
 tests = ["test_rhp_bind_listen_reply"]
 
 [[issue]]

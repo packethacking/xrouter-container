@@ -45,6 +45,7 @@ issue = "https://github.com/packethacking/xrouter-container/issues/5"
 title = "XRouter sends its own node with trip time 0 (INP3 range is 1 to 60000)"
 finding = 3
 until = "505o"
+fixed_in = "505p"
 tests = ["test_xrouter_rif_fields_in_spec_range", "test_xrouter_rif_to_xnet_fields_in_spec_range",
          "test_xrouter_rif_to_tnn_fields_in_spec_range", "test_xrouter_rif_to_xrpeer_fields_in_spec_range"]
 
@@ -109,6 +110,7 @@ issue = "https://github.com/packethacking/xrouter-container/issues/2"
 title = "RHP bind reply is not valid JSON (type bind, errText label missing)"
 from = "505o"
 until = "505o"
+fixed_in = "505p"
 reported = "2026-10-11, xrouter group; author confirmed and fixed for a later build"
 tests = ["test_rhp_bind_reply_is_valid_json"]
 
@@ -119,6 +121,7 @@ issue = "https://github.com/packethacking/xrouter-container/issues/3"
 title = "RHP send and sendto on a listening socket reply without the handle"
 from = "505d"
 until = "505o"
+fixed_in = "505p"
 reported = "2026-10-11, xrouter group; author confirmed and fixed for a later build"
 tests = ["test_rhp_send_on_listener_reply_carries_handle", "test_rhp_sendto_on_listener_reply_carries_handle"]
 
@@ -159,6 +162,7 @@ title = "The second XRouter sends its own node with trip time 0 (finding 3)"
 applies_to = "peer"
 finding = 3
 until = "505o"
+fixed_in = "505p"
 tests = ["test_xrpeer_rif_fields_in_spec_range"]
 
 [[issue]]
