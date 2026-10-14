@@ -7,7 +7,7 @@
     "00-XrPi32-static": "armv7 static",
     "00-XrLin64-vanessa": "amd64 dynamic, only for versions with no static amd64 build"
   },
-  "last_checked": "2026-10-11",
+  "last_checked": "2026-10-14",
   "files": [
     {
       "id": 4096341,
@@ -22,7 +22,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4101327,
@@ -37,7 +37,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4101846,
@@ -52,7 +52,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4102733,
@@ -67,7 +67,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4109837,
@@ -82,7 +82,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4118061,
@@ -97,7 +97,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4126714,
@@ -112,7 +112,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4137733,
@@ -127,7 +127,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4145807,
@@ -142,7 +142,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4147405,
@@ -157,7 +157,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4150803,
@@ -172,7 +172,112 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
+    },
+    {
+      "id": 4280715,
+      "folder": "00-XrLin64-static",
+      "name": "xrlin64v505d-static",
+      "size_bytes": 4730296,
+      "created": "2026-10-13T20:36:33.357565255-07:00",
+      "updated": "2026-10-13T20:36:33.357565255-07:00",
+      "sha256": "a5ed998fd83ff218b9f6937c6f7ad56c2a7911a56165e1fa56d5edfe239bad8b",
+      "source": "download-verified 2026-10-14",
+      "version": "505d",
+      "arch": "amd64",
+      "linkage": "static",
+      "first_seen": "2026-10-14",
+      "last_checked": "2026-10-14"
+    },
+    {
+      "id": 4280716,
+      "folder": "00-XrLin64-static",
+      "name": "xrlin64v505h-static",
+      "size_bytes": 4734456,
+      "created": "2026-10-13T20:36:33.552866241-07:00",
+      "updated": "2026-10-13T20:36:33.552866241-07:00",
+      "sha256": "57da9ba350df2d3b04d935d02daf027b19b12a0497ad8102eeb0fcec4315542d",
+      "source": "download-verified 2026-10-14",
+      "version": "505h",
+      "arch": "amd64",
+      "linkage": "static",
+      "first_seen": "2026-10-14",
+      "last_checked": "2026-10-14"
+    },
+    {
+      "id": 4280717,
+      "folder": "00-XrLin64-static",
+      "name": "xrlin64v505i-static",
+      "size_bytes": 4738584,
+      "created": "2026-10-13T20:36:33.735591658-07:00",
+      "updated": "2026-10-13T20:36:33.735591658-07:00",
+      "sha256": "173e54407d29354705f2979039206ea64039eb84305ea867fdb870678c3bbd6e",
+      "source": "download-verified 2026-10-14",
+      "version": "505i",
+      "arch": "amd64",
+      "linkage": "static",
+      "first_seen": "2026-10-14",
+      "last_checked": "2026-10-14"
+    },
+    {
+      "id": 4280712,
+      "folder": "00-XrLin64-static",
+      "name": "xrlin64v505k-static",
+      "size_bytes": 4738616,
+      "created": "2026-10-13T20:25:55.631502869-07:00",
+      "updated": "2026-10-13T20:25:55.631502869-07:00",
+      "sha256": "565f2df5c83f9f3445af8c4b59d3b2b68cc40546db3e538b01b29341e41bd31a",
+      "source": "download-verified 2026-10-14",
+      "version": "505k",
+      "arch": "amd64",
+      "linkage": "static",
+      "first_seen": "2026-10-14",
+      "last_checked": "2026-10-14"
+    },
+    {
+      "id": 4280713,
+      "folder": "00-XrLin64-static",
+      "name": "xrlin64v505l-static",
+      "size_bytes": 4738616,
+      "created": "2026-10-13T20:25:55.909212715-07:00",
+      "updated": "2026-10-13T20:25:55.909212715-07:00",
+      "sha256": "bef30146fa8427137c524b23c5467bd4d701eeb9f93c565d125dd06011360a6f",
+      "source": "download-verified 2026-10-14",
+      "version": "505l",
+      "arch": "amd64",
+      "linkage": "static",
+      "first_seen": "2026-10-14",
+      "last_checked": "2026-10-14"
+    },
+    {
+      "id": 4280714,
+      "folder": "00-XrLin64-static",
+      "name": "xrlin64v505m-static",
+      "size_bytes": 4742712,
+      "created": "2026-10-13T20:25:56.144253271-07:00",
+      "updated": "2026-10-13T20:25:56.144253271-07:00",
+      "sha256": "8c4f25c456673a16a7a59ac4924b9b73a1f4c7afe32d99ed5bc3aaff5808fa88",
+      "source": "download-verified 2026-10-14",
+      "version": "505m",
+      "arch": "amd64",
+      "linkage": "static",
+      "first_seen": "2026-10-14",
+      "last_checked": "2026-10-14"
+    },
+    {
+      "id": 4280380,
+      "folder": "00-XrLin64-static",
+      "name": "xrlin64v505n-static",
+      "size_bytes": 4742704,
+      "created": "2026-10-13T12:13:56.458627644-07:00",
+      "updated": "2026-10-13T12:13:56.458627644-07:00",
+      "sha256": "b072eb38cedbbca2d4aad2eba33efbc9f85cc1c376d7bf0a9f75869dad5ead43",
+      "source": "download-verified 2026-10-14",
+      "version": "505n",
+      "arch": "amd64",
+      "linkage": "static",
+      "first_seen": "2026-10-14",
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4278390,
@@ -187,7 +292,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4096386,
@@ -202,7 +307,7 @@
       "arch": "arm64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4101370,
@@ -217,7 +322,7 @@
       "arch": "arm64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4109839,
@@ -232,7 +337,7 @@
       "arch": "arm64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4118083,
@@ -247,7 +352,7 @@
       "arch": "arm64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4137782,
@@ -262,7 +367,7 @@
       "arch": "arm64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4145834,
@@ -277,7 +382,7 @@
       "arch": "arm64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4150842,
@@ -292,7 +397,52 @@
       "arch": "arm64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
+    },
+    {
+      "id": 4280375,
+      "folder": "00-XrPi64-static",
+      "name": "xrpi64v505d-static",
+      "size_bytes": 4109584,
+      "created": "2026-10-13T12:03:31.973373275-07:00",
+      "updated": "2026-10-13T12:03:31.973373275-07:00",
+      "sha256": "b2047b782dc19f823431da8d5b9364d11b836df726020063912242799eb2b046",
+      "source": "download-verified 2026-10-14",
+      "version": "505d",
+      "arch": "arm64",
+      "linkage": "static",
+      "first_seen": "2026-10-14",
+      "last_checked": "2026-10-14"
+    },
+    {
+      "id": 4280376,
+      "folder": "00-XrPi64-static",
+      "name": "xrpi64v505f-static",
+      "size_bytes": 4117776,
+      "created": "2026-10-13T12:03:32.214873654-07:00",
+      "updated": "2026-10-13T12:03:32.214873654-07:00",
+      "sha256": "4aef99d86f29f89ec3904e43d6de9a5e5a86d533abd347edea70987820dde6fb",
+      "source": "download-verified 2026-10-14",
+      "version": "505f",
+      "arch": "arm64",
+      "linkage": "static",
+      "first_seen": "2026-10-14",
+      "last_checked": "2026-10-14"
+    },
+    {
+      "id": 4280377,
+      "folder": "00-XrPi64-static",
+      "name": "xrpi64v505g-static",
+      "size_bytes": 4109584,
+      "created": "2026-10-13T12:03:32.436577316-07:00",
+      "updated": "2026-10-13T12:03:32.436577316-07:00",
+      "sha256": "550f94a6aa9d5465c682eaa3fd646f8e5604b827890cbd57f45ff72f2743422d",
+      "source": "download-verified 2026-10-14",
+      "version": "505g",
+      "arch": "arm64",
+      "linkage": "static",
+      "first_seen": "2026-10-14",
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4278517,
@@ -307,7 +457,7 @@
       "arch": "arm64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4096340,
@@ -322,7 +472,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4101329,
@@ -337,7 +487,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4101849,
@@ -352,7 +502,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4109833,
@@ -367,7 +517,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4118084,
@@ -382,7 +532,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4125562,
@@ -397,7 +547,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4137833,
@@ -412,7 +562,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4145832,
@@ -427,7 +577,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4150844,
@@ -442,7 +592,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4150846,
@@ -457,7 +607,142 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
+    },
+    {
+      "id": 4280352,
+      "folder": "00-XrPi32-static",
+      "name": "xrpi32v505d-static",
+      "size_bytes": 3766520,
+      "created": "2026-10-13T11:51:21.750440913-07:00",
+      "updated": "2026-10-13T11:51:21.750440913-07:00",
+      "sha256": "9a6d4a35d6f5d4011cdd01c7a742b9bd5900d647892eb45f67fb8a835f0c2388",
+      "source": "download-verified 2026-10-14",
+      "version": "505d",
+      "arch": "armv7",
+      "linkage": "static",
+      "first_seen": "2026-10-14",
+      "last_checked": "2026-10-14"
+    },
+    {
+      "id": 4280353,
+      "folder": "00-XrPi32-static",
+      "name": "xrpi32v505e-static",
+      "size_bytes": 3766520,
+      "created": "2026-10-13T11:51:21.911858179-07:00",
+      "updated": "2026-10-13T11:51:21.911858179-07:00",
+      "sha256": "e8a903a7ebc36f6c2fbd5f0748ea0e7d4224277c4425b8dc3c029d02bd29e2f6",
+      "source": "download-verified 2026-10-14",
+      "version": "505e",
+      "arch": "armv7",
+      "linkage": "static",
+      "first_seen": "2026-10-14",
+      "last_checked": "2026-10-14"
+    },
+    {
+      "id": 4280354,
+      "folder": "00-XrPi32-static",
+      "name": "xrpi32v505f-static",
+      "size_bytes": 3770616,
+      "created": "2026-10-13T11:51:22.088477929-07:00",
+      "updated": "2026-10-13T11:51:22.088477929-07:00",
+      "sha256": "9f3c47bf6df73f2d772ba26f6018468ca886d8aecfcd008ea210f03acc3fe173",
+      "source": "download-verified 2026-10-14",
+      "version": "505f",
+      "arch": "armv7",
+      "linkage": "static",
+      "first_seen": "2026-10-14",
+      "last_checked": "2026-10-14"
+    },
+    {
+      "id": 4280355,
+      "folder": "00-XrPi32-static",
+      "name": "xrpi32v505g-static",
+      "size_bytes": 3770616,
+      "created": "2026-10-13T11:51:22.255623084-07:00",
+      "updated": "2026-10-13T11:51:22.255623084-07:00",
+      "sha256": "56eb0def537bc9df14c83ab9e96ae199b66cfc5ab805e763803d0306b1039419",
+      "source": "download-verified 2026-10-14",
+      "version": "505g",
+      "arch": "armv7",
+      "linkage": "static",
+      "first_seen": "2026-10-14",
+      "last_checked": "2026-10-14"
+    },
+    {
+      "id": 4280356,
+      "folder": "00-XrPi32-static",
+      "name": "xrpi32v505h-static",
+      "size_bytes": 3770672,
+      "created": "2026-10-13T11:51:22.38425051-07:00",
+      "updated": "2026-10-13T11:51:22.38425051-07:00",
+      "sha256": "9672f2ee9d869bbe2e7c39789390543d9a97c626b97787d662575b068a07be34",
+      "source": "download-verified 2026-10-14",
+      "version": "505h",
+      "arch": "armv7",
+      "linkage": "static",
+      "first_seen": "2026-10-14",
+      "last_checked": "2026-10-14"
+    },
+    {
+      "id": 4280357,
+      "folder": "00-XrPi32-static",
+      "name": "xrpi32v505i-static",
+      "size_bytes": 3774784,
+      "created": "2026-10-13T11:51:47.688753242-07:00",
+      "updated": "2026-10-13T11:51:47.688753242-07:00",
+      "sha256": "59af21757c7ebca5ad8ee56fc6700edef8be81118c98b6b0149b3f66e0c4fc00",
+      "source": "download-verified 2026-10-14",
+      "version": "505i",
+      "arch": "armv7",
+      "linkage": "static",
+      "first_seen": "2026-10-14",
+      "last_checked": "2026-10-14"
+    },
+    {
+      "id": 4280358,
+      "folder": "00-XrPi32-static",
+      "name": "xrpi32v505k-static",
+      "size_bytes": 3778888,
+      "created": "2026-10-13T11:51:47.89334215-07:00",
+      "updated": "2026-10-13T11:51:47.89334215-07:00",
+      "sha256": "fc3ed291a3b1371c6c2cfd985a422454c3ec4e05e1b4564990829b94d31ae50c",
+      "source": "download-verified 2026-10-14",
+      "version": "505k",
+      "arch": "armv7",
+      "linkage": "static",
+      "first_seen": "2026-10-14",
+      "last_checked": "2026-10-14"
+    },
+    {
+      "id": 4280359,
+      "folder": "00-XrPi32-static",
+      "name": "xrpi32v505l-static",
+      "size_bytes": 3778888,
+      "created": "2026-10-13T11:51:48.082619215-07:00",
+      "updated": "2026-10-13T11:51:48.082619215-07:00",
+      "sha256": "c296f62adfc289583df73619af6d35ab7bad2f9cf0bc47137c69b09d9dce6b05",
+      "source": "download-verified 2026-10-14",
+      "version": "505l",
+      "arch": "armv7",
+      "linkage": "static",
+      "first_seen": "2026-10-14",
+      "last_checked": "2026-10-14"
+    },
+    {
+      "id": 4280360,
+      "folder": "00-XrPi32-static",
+      "name": "xrpi32v505m-static",
+      "size_bytes": 3778888,
+      "created": "2026-10-13T11:51:48.267421777-07:00",
+      "updated": "2026-10-13T11:51:48.267421777-07:00",
+      "sha256": "e7d51f3e57b191fdc5e33c832e01a1c7bb7f4ef34b30953dc07d3e5838fcaf27",
+      "source": "download-verified 2026-10-14",
+      "version": "505m",
+      "arch": "armv7",
+      "linkage": "static",
+      "first_seen": "2026-10-14",
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4278445,
@@ -472,7 +757,22 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
+    },
+    {
+      "id": 4279902,
+      "folder": "00-XrPi32-static",
+      "name": "xrpi32v505p-static",
+      "size_bytes": 3102868,
+      "created": "2026-10-12T15:05:33.842277664-07:00",
+      "updated": "2026-10-12T15:05:33.842277664-07:00",
+      "sha256": "8e0ee635517fd48b06c0924a5e8d6da817a895b6df8b82549425c4bfb5e9fa52",
+      "source": "download-verified 2026-10-14",
+      "version": "505p",
+      "arch": "armv7",
+      "linkage": "static",
+      "first_seen": "2026-10-14",
+      "last_checked": "2026-10-14"
     },
     {
       "id": 4123089,
@@ -487,7 +787,7 @@
       "arch": "amd64",
       "linkage": "dynamic",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-11"
+      "last_checked": "2026-10-14"
     }
   ]
 }
