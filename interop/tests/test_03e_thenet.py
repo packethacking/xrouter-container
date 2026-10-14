@@ -137,7 +137,7 @@ def test_l4_connect_thenet_to_xrouter(thenet, peers_converged):
     out += thenet.drain(3, 60)
     assert re.search(r"connected to", out, re.I), f"TheNet could not connect to {XR_ALIAS}:\n{out}"
     out = thenet.cmd("V", 5)
-    assert "XRouter" in out or "XrLin" in out, f"no reply from XRouter's V command through the circuit:\n{out}"
+    assert re.search(r"XRouter|Xrouter|XrLin|XrPi", out), f"no reply from XRouter's V command through the circuit:\n{out}"
 
 
 def test_l4_connect_thenet_to_bpq2_through_xrouter(thenet, peers_converged):
