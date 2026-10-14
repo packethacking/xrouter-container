@@ -22,7 +22,7 @@ tests = ["test_rhp_bind_listen_reply"]
 id = "agw-unproto-needs-registration"
 issue = "https://github.com/packethacking/xrouter-container/issues/11"
 title = "AGW 'M' unproto from a client that has not registered a callsign is not sent"
-from = "505n"
+from = "505d"
 tests = ["test_agw_send_ui_unregistered"]
 
 [[issue]]
@@ -35,7 +35,7 @@ tests = ["test_dut_broadcasts_nodes_on_port2"]
 id = "fbb-bad-compressed-data-hangs"
 issue = "https://github.com/packethacking/xrouter-container/issues/12"
 title = "Undecodable compressed (FA) message hangs the whole node"
-from = "505n"
+from = "505d"
 tests = ["test_fbb_bad_compressed_data_does_not_hang_node"]
 
 [[issue]]
@@ -48,7 +48,7 @@ tests = ["test_read_forwarded_message_shows_body", "test_read_mbl_forwarded_mess
 id = "fbb-sid-silent"
 issue = "https://github.com/packethacking/xrouter-container/issues/14"
 title = "After an FBB SID, user commands get no answer at all"
-from = "505n"
+from = "505d"
 tests = ["test_user_command_after_fbb_sid_gets_an_answer"]
 
 [[issue]]
@@ -61,7 +61,7 @@ tests = ["test_dedhost_unproto_beacon"]
 id = "fbb-ascii-out-no-ctrl-z"
 issue = "https://github.com/packethacking/xrouter-container/issues/22"
 title = "FBB ASCII forwarding out (FB) ends messages with /EX instead of Ctrl-Z"
-from = "505n"
+from = "505d"
 tests = ["test_fbb_reverse_forward_ascii_ends_with_ctrl_z"]
 
 [[issue]]
@@ -69,5 +69,5 @@ id = "mbl-out-stray-nul"
 issue = "https://github.com/packethacking/xrouter-container/issues/23"
 title = "MBL forwarding out puts a NUL byte before /EX"
 until = "505c"
-fixed_in = "505o"
+fixed_in = "505d"
 tests = ["test_mbl_reverse_forward"]
