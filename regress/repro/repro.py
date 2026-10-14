@@ -13,8 +13,8 @@ the node.
 
    2  RHP bind reply is not valid JSON
    3  RHP send / sendto on a listening socket reply without the socket handle
-   4  INPBCINTERVAL has no effect on full INP3 updates (takes ~5 minutes)
-   5  the node advertises itself in INP3 with trip time 0
+   4  INPBCINTERVAL has no effect on full INP3 updates (takes ~6 minutes)
+   5  the node advertises itself in INP3 with trip time 0 (505c: ~10 minutes)
    6  scheduled NODES broadcasts go out on the first port only (takes ~3 minutes)
    7  the first INP3 RIP for a newly learnt node has no alias option
   11  AGW 'M' (unproto) from a client that has not registered a callsign is not sent
@@ -228,6 +228,7 @@ class Inp3Neighbour:
         self.u.bind((HOST, listen))
         self.u.settimeout(0.2)
         self.connected, self.vs, self.vr = False, 0, 0
+        self.linked_at = 0.0
         self.rifs: list[tuple[float, list]] = []
         threading.Thread(target=self._run, daemon=True).start()
 
@@ -287,6 +288,7 @@ class Inp3Neighbour:
             pf = ctl & 0x10
             if ctl & ~0x10 == 0x2F:                                   # SABM
                 self.connected, self.vs, self.vr = True, 0, 0
+                self.linked_at = self.linked_at or time.time()
                 self._tx(0x63 | pf, cmd=False)                        # UA
                 threading.Thread(target=self._say_hello, daemon=True).start()
             elif ctl & ~0x10 == 0x43:                                 # DISC
@@ -314,11 +316,13 @@ def wait_for(cond, seconds: float) -> bool:
 
 
 def repro_5() -> int:
-    """Trip time of the node's own RIP in the first RIF it sends."""
+    """Trip time of the node's own RIP in the first RIF it sends. 505n and
+    later send a RIF at link set-up; 505c not until its first full update,
+    about 10 minutes after start-up."""
     nb = Inp3Neighbour("PN0NBA", "NBA", UDP_SNIFF, XR_UDP1)
-    print(f"Fake INP3 neighbour PN0NBA on port 1; waiting for {NODECALL}'s first RIF ...")
-    if not wait_for(lambda: nb.rifs, 120):
-        return verdict(False, "no RIF from the node in 120 s (not taken as an INP3 neighbour)")
+    print(f"Fake INP3 neighbour PN0NBA on port 1; waiting up to 11 min for {NODECALL}'s first RIF ...")
+    if not wait_for(lambda: nb.rifs, 660):
+        return verdict(False, "no RIF from the node in 11 minutes (not taken as an INP3 neighbour)")
     own = [r for r in nb.rifs[0][1] if r[0] == NODECALL]
     if not own:
         return verdict(False, f"the first RIF has no RIP for {NODECALL}")
@@ -328,24 +332,27 @@ def repro_5() -> int:
 
 
 def repro_4() -> int:
-    """Full updates (RIFs that include the node itself) with INPBCINTERVAL=120."""
+    """Full updates (RIFs that include the node itself) with INPBCINTERVAL=120.
+    Run it straight after start-node.sh: the node's own 10-minute cycle,
+    counted from start-up, must not fall inside the 5 minutes watched."""
     nb = Inp3Neighbour("PN0NBA", "NBA", UDP_SNIFF, XR_UDP1)
-    print(f"Fake INP3 neighbour PN0NBA on port 1. XROUTER.CFG has INPBCINTERVAL=120.")
-    print(f"Watching for 300 s after the first RIF for full updates (RIFs that include {NODECALL}) ...")
-    if not wait_for(lambda: nb.rifs, 120):
-        return verdict(False, "no RIF from the node in 120 s (not taken as an INP3 neighbour)")
-    first = nb.rifs[0][0]
-    time.sleep(max(0.0, first + 300 - time.time()))
-    full = [round(t - first) for t, rips in nb.rifs if any(r[0] == NODECALL for r in rips)]
-    print(f"  full updates at (s after the first RIF): {full}")
+    print("Fake INP3 neighbour PN0NBA on port 1. XROUTER.CFG has INPBCINTERVAL=120.")
+    if not wait_for(lambda: nb.linked_at, 120):
+        return verdict(False, "the node did not open a link to the fake neighbour in 120 s")
+    up = nb.linked_at
+    print(f"Link up at {up - START:.1f} s. Watching full updates (RIFs that include {NODECALL}) "
+          "for 300 s after link set-up ...")
+    time.sleep(max(0.0, up + 300 - time.time()))
+    full = [round(t - up) for t, rips in nb.rifs if any(r[0] == NODECALL for r in rips)]
+    print(f"  full updates at (s after link set-up): {full}")
     t = Telnet("PN0USR")
     t.send("N BC T")
     t.read(2)
     t.close()
-    later = [s for s in full if s >= 30]
-    bug = not later
-    return verdict(bug, "no full update within 300 s, although INPBCINTERVAL=120" if bug
-                   else f"full updates after set-up at {later} s")
+    scheduled = [s for s in full if s >= 60]
+    bug = not scheduled
+    return verdict(bug, "no scheduled full update within 300 s of link set-up, although INPBCINTERVAL=120" if bug
+                   else f"scheduled full updates at {scheduled} s after link set-up")
 
 
 def repro_7() -> int:
@@ -353,16 +360,16 @@ def repro_7() -> int:
     The first positive RIP (trip time below 60000) for A that the node sends
     B should carry A's alias."""
     b = Inp3Neighbour("PN0NBB", "NBB", UDP_SNIFF, XR_UDP1)
-    print("Fake INP3 neighbour PN0NBB (alias NBB) on port 1; waiting for its link and first RIF ...")
-    if not wait_for(lambda: b.rifs, 120):
-        return verdict(False, "no RIF to PN0NBB in 120 s (not taken as an INP3 neighbour)")
-    time.sleep(20)
+    print("Fake INP3 neighbour PN0NBB (alias NBB) on port 1; waiting for its link to settle ...")
+    if not wait_for(lambda: b.linked_at, 120):
+        return verdict(False, "the node did not open a link to PN0NBB in 120 s")
+    time.sleep(40)
     print("Now fake INP3 neighbour PN0NBA (alias NBA) on port 2 ...")
     mark = len(b.rifs)
     a = Inp3Neighbour("PN0NBA", "NBA", UDP_SNIFF2, XR_UDP2)
     about_a = lambda: [r for _, rips in b.rifs[mark:] for r in rips if r[0] == "PN0NBA" and r[2] < 60000]  # noqa: E731
-    if not wait_for(about_a, 120):
-        return verdict(False, "no positive RIP for PN0NBA sent to PN0NBB in 120 s")
+    if not wait_for(about_a, 660):          # 505c may wait for its 10-minute full update
+        return verdict(False, "no positive RIP for PN0NBA sent to PN0NBB in 11 minutes")
     rip = about_a()[0]
     print(f"  first positive RIP for PN0NBA sent to PN0NBB: {show_rif([rip])}")
     bug = rip[3] is None
