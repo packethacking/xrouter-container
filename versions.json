@@ -6,8 +6,8 @@
     "sha256": "1b2fc065b9303980446fef3b5ca4ac5f89699057a549c93383e2fc979b8be26d"
   },
   "latest": "505p",
-  "latest_amd64": "505o",
-  "latest_arm64": "505o",
+  "latest_amd64": "505p",
+  "latest_arm64": "505p",
   "latest_armv7": "505p",
   "versions": {
     "504p": {
@@ -262,6 +262,14 @@
       }
     },
     "505p": {
+      "amd64": {
+        "url": "https://compute.oarc.uk/storage/public/folders/4851/xrouter-505p-amd64",
+        "sha256": "05da68d32379ba9ff9038d3ceca67cb0209367b9c66d699c8324b8651e464c9e"
+      },
+      "arm64": {
+        "url": "https://compute.oarc.uk/storage/public/folders/4851/xrouter-505p-arm64",
+        "sha256": "c308eb0ece8a54649897111550f3a8b5de20986450a3c7bd8cc61a502050eb8d"
+      },
       "armv7": {
         "url": "https://compute.oarc.uk/storage/public/folders/4851/xrouter-505p-armv7",
         "sha256": "8e0ee635517fd48b06c0924a5e8d6da817a895b6df8b82549425c4bfb5e9fa52"

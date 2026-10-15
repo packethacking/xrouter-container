@@ -7,7 +7,7 @@
     "00-XrPi32-static": "armv7 static",
     "00-XrLin64-vanessa": "amd64 dynamic, only for versions with no static amd64 build"
   },
-  "last_checked": "2026-10-14",
+  "last_checked": "2026-10-15",
   "files": [
     {
       "id": 4096341,
@@ -22,7 +22,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4101327,
@@ -37,7 +37,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4101846,
@@ -52,7 +52,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4102733,
@@ -67,7 +67,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4109837,
@@ -82,7 +82,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4118061,
@@ -97,7 +97,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4126714,
@@ -112,7 +112,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4137733,
@@ -127,7 +127,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4145807,
@@ -142,7 +142,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4147405,
@@ -157,7 +157,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4150803,
@@ -172,7 +172,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4280715,
@@ -187,7 +187,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-14",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4280716,
@@ -202,7 +202,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-14",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4280717,
@@ -217,7 +217,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-14",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4280712,
@@ -232,7 +232,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-14",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4280713,
@@ -247,7 +247,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-14",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4280714,
@@ -262,7 +262,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-14",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4280380,
@@ -277,7 +277,7 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-14",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4278390,
@@ -292,7 +292,22 @@
       "arch": "amd64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
+    },
+    {
+      "id": 4281109,
+      "folder": "00-XrLin64-static",
+      "name": "xrlin64v505p-static",
+      "size_bytes": 4775672,
+      "created": "2026-10-14T15:09:44.206288-07:00",
+      "updated": "2026-10-14T15:09:44.206288-07:00",
+      "sha256": "05da68d32379ba9ff9038d3ceca67cb0209367b9c66d699c8324b8651e464c9e",
+      "source": "download-verified 2026-10-15",
+      "version": "505p",
+      "arch": "amd64",
+      "linkage": "static",
+      "first_seen": "2026-10-15",
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4096386,
@@ -307,7 +322,7 @@
       "arch": "arm64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4101370,
@@ -322,7 +337,7 @@
       "arch": "arm64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4109839,
@@ -337,7 +352,7 @@
       "arch": "arm64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4118083,
@@ -352,7 +367,7 @@
       "arch": "arm64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4137782,
@@ -367,7 +382,7 @@
       "arch": "arm64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4145834,
@@ -382,7 +397,7 @@
       "arch": "arm64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4150842,
@@ -397,7 +412,7 @@
       "arch": "arm64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4280375,
@@ -412,7 +427,7 @@
       "arch": "arm64",
       "linkage": "static",
       "first_seen": "2026-10-14",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4280376,
@@ -427,7 +442,7 @@
       "arch": "arm64",
       "linkage": "static",
       "first_seen": "2026-10-14",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4280377,
@@ -442,7 +457,7 @@
       "arch": "arm64",
       "linkage": "static",
       "first_seen": "2026-10-14",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4278517,
@@ -457,7 +472,22 @@
       "arch": "arm64",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
+    },
+    {
+      "id": 4280922,
+      "folder": "00-XrPi64-static",
+      "name": "xrpi64v505p-static",
+      "size_bytes": 4281824,
+      "created": "2026-10-14T08:52:36.560799764-07:00",
+      "updated": "2026-10-14T08:52:36.560799764-07:00",
+      "sha256": "c308eb0ece8a54649897111550f3a8b5de20986450a3c7bd8cc61a502050eb8d",
+      "source": "download-verified 2026-10-15",
+      "version": "505p",
+      "arch": "arm64",
+      "linkage": "static",
+      "first_seen": "2026-10-15",
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4096340,
@@ -472,7 +502,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4101329,
@@ -487,7 +517,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4101849,
@@ -502,7 +532,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4109833,
@@ -517,7 +547,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4118084,
@@ -532,7 +562,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4125562,
@@ -547,7 +577,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4137833,
@@ -562,7 +592,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4145832,
@@ -577,7 +607,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4150844,
@@ -592,7 +622,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4150846,
@@ -607,7 +637,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4280352,
@@ -622,7 +652,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-14",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4280353,
@@ -637,7 +667,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-14",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4280354,
@@ -652,7 +682,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-14",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4280355,
@@ -667,7 +697,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-14",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4280356,
@@ -682,7 +712,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-14",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4280357,
@@ -697,7 +727,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-14",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4280358,
@@ -712,7 +742,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-14",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4280359,
@@ -727,7 +757,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-14",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4280360,
@@ -742,7 +772,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-14",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4278445,
@@ -757,7 +787,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4279902,
@@ -772,7 +802,7 @@
       "arch": "armv7",
       "linkage": "static",
       "first_seen": "2026-10-14",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     },
     {
       "id": 4123089,
@@ -787,7 +817,7 @@
       "arch": "amd64",
       "linkage": "dynamic",
       "first_seen": "2026-10-11",
-      "last_checked": "2026-10-14"
+      "last_checked": "2026-10-15"
     }
   ]
 }
