@@ -35,7 +35,8 @@ id = "no-scheduled-rif"
 issue = "https://github.com/packethacking/xrouter-container/issues/4"
 title = "XRouter ignores INPBCINTERVAL: it re-sends its routes only every 10 minutes"
 finding = 2
-until = "505p"
+until = "505o"
+fixed_in = "505p"
 tests = ["test_xrouter_refreshes_rif_on_schedule", "test_xrouter_refreshes_rif_to_xnet",
          "test_xrouter_refreshes_rif_to_tnn", "test_xrouter_refreshes_rif_to_xrpeer"]
 
@@ -171,7 +172,8 @@ issue = "https://github.com/packethacking/xrouter-container/issues/4"
 title = "The second XRouter ignores INPBCINTERVAL and re-sends its routes only every 10 minutes (finding 2)"
 applies_to = "peer"
 finding = 2
-until = "505p"
+until = "505o"
+fixed_in = "505p"
 tests = ["test_xrpeer_refreshes_rif_on_schedule"]
 
 [[issue]]

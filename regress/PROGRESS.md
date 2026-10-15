@@ -197,3 +197,9 @@ Coverage and the gaps worth closing next: `COVERAGE.md`.
   different one failed in each of three runs, each passed at least once);
   not recorded as a known issue. Bug matrix artifact:
   https://claude.ai/artifact/SvgMibKE5mjqHMWooqfmwc
+- 2026-10-15: 505p x86-64 uploaded 2026-10-14 (ingested by the upstream
+  check, latest_amd64 now 505p). Native repros + interop: #4 FIXED (full
+  updates every ~128 s; armv7 505p from 12 Oct still had it), closed with
+  fixed_in 505p. Otherwise same as armv7 505p: #2 #3 #5 #8 #9 #23 fixed;
+  #6 #7 #11 #12 #13 #14 #22 present. TheNet interop tests all pass natively,
+  so the earlier failures were qemu timing.

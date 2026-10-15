@@ -33,7 +33,7 @@ then a verdict line, `BUG PRESENT: ...` (exit 1) or `NOT REPRODUCED: ...`
 |---|---|---|---|---|---|---|
 | 2 | RHP bind reply is not valid JSON | not reproduced | not reproduced | **present** | not reproduced | 505o |
 | 3 | RHP send/sendto on a listening socket reply without the handle | not reproduced | **present** | **present** | not reproduced | 505d |
-| 4 | INPBCINTERVAL has no effect: no scheduled full INP3 update within 5 min (6 min) | **present** | **present** | **present** | **present** | 505c or earlier |
+| 4 | INPBCINTERVAL has no effect: no scheduled full INP3 update within 5 min (6 min) | **present** | **present** | **present** | **present** (x86-64 build: fixed) | 505c or earlier |
 | 5 | Node advertises itself in INP3 with trip time 0 (505c: 10 min) | **present** | **present** | **present** | not reproduced | 505c or earlier |
 | 6 | Scheduled NODES broadcasts only on the first port (3 min) | **present** | **present** | **present** | **present** | 505c or earlier |
 | 7 | First positive INP3 RIP for a newly learnt node has no alias (11 min on 505c) | not reproduced (sends only full updates) | **present** | **present** | **present** | 505m (505k, 505l never relay the node at all) |
@@ -48,6 +48,7 @@ Verified 2026-10-14 with the x86-64 static builds of 505c, 505n and 505o,
 run as an unprivileged user. 505p exists only as an armv7 build so far; it
 was run under qemu-arm through a two-line wrapper script
 (`exec qemu-arm ./xrpi32v505p-static "$@"`) passed to start-node.sh.
+The x86-64 505p (uploaded 2026-10-14, run natively) matches the armv7 column except #4, which it fixes.
 "First seen" comes from running the repros on the intermediate builds the
 author uploaded on 2026-10-13 (505d, 505h, 505i, 505k, 505l, 505m). (505n was uploaded to groups.io on
 2026-10-13, after 505o, though its letter is earlier.)
