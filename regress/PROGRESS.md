@@ -203,3 +203,9 @@ Coverage and the gaps worth closing next: `COVERAGE.md`.
   fixed_in 505p. Otherwise same as armv7 505p: #2 #3 #5 #8 #9 #23 fixed;
   #6 #7 #11 #12 #13 #14 #22 present. TheNet interop tests all pass natively,
   so the earlier failures were qemu timing.
+- 2026-10-15: CI on 505p: regress green (240 passed, 10 xfailed: #6 #11
+  #12 #13 #14 #22 + dedhost; console output unchanged against goldens).
+  Interop red only on #4's four strict XPASSes (run predates the fixed_in
+  commit 6cbe659); 505m/505n/505o green. With XNet/TNN present, 505p passed
+  seven non-strict #7 alias checks; repro.py 7 still shows #7, so it stays
+  open. Noted on #2 that a fixed image (:505p) is on GHCR (DAPPS waits on it).
